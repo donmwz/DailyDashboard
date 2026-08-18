@@ -1,12 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes.stock import router as stock_router
-
 
 from backend.routes.weather import router as weather_router
 from backend.routes.currency import router as currency_router
 from backend.routes.news import router as news_router
 from backend.routes.gold import router as gold_router
+from backend.routes.stock import router as stock_router
 
 app = FastAPI(
     title="Daily Dashboard API",
@@ -19,6 +18,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
     ],
     allow_credentials=True,
     allow_methods=["*"],

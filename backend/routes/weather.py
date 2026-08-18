@@ -50,6 +50,26 @@ router = APIRouter(
     tags=["Weather"]
 )
 
+@router.get("/cities")
+async def get_cities():
+
+    return list(CITIES.values())
+
+@router.get("/city/{city_name}")
+async def get_city_weather(city_name: str):
+
+    city = CITIES.get(city_name.lower())
+
+    if not city:
+        raise HTTPException(
+            status_code=404,
+            detail="Şehir bulunamadı."
+        )
+
+    return await get_weather(
+        latitude=city["latitude"],
+        longitude=city["longitude"]
+    )
 
 @router.get("")
 async def get_weather(

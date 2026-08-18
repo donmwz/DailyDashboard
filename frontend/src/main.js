@@ -5,2589 +5,829 @@ import * as bootstrap from "bootstrap";
 
 const API_URL = "http://127.0.0.1:8000";
 
-
 // ======================================================
 // DASHBOARD HTML
 // ======================================================
 
 document.querySelector("#app").innerHTML = `
-
 <div class="page">
-
     <!-- NAVBAR -->
-    <header class="navbar navbar-expand-md">
-
+    <header class="navbar navbar-expand-md navbar-light d-print-none sticky-top border-bottom bg-surface shadow-sm">
         <div class="container-xl">
+            <a href="#" class="navbar-brand d-flex align-items-center gap-2">
+                <div class="p-2 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center">
+                    <i class="ti ti-layout-dashboard fs-2"></i>
+                </div>
+                <div>
+                    <span class="fw-bold fs-3 tracking-tight d-block lh-1">Daily</span>
+                    <span class="fs-6 text-secondary fw-normal">Dashboard</span>
+                </div>
+            </a>
 
-            <div class="navbar-brand">
-                <i class="ti ti-layout-dashboard"></i>
-                <span>Daily Dashboard</span>
-            </div>
-
-            <div class="navbar-nav flex-row order-md-last">
-
-                <button
-                    class="btn btn-icon"
-                    id="themeToggle"
-                    title="Tema değiştir"
-                >
-                    <i class="ti ti-moon"></i>
+            <div class="navbar-nav flex-row order-md-last align-items-center gap-2">
+                <button class="btn btn-icon btn-ghost-secondary rounded-circle" id="themeToggle" title="Tema Değiştir">
+                    <i class="ti ti-moon fs-2" id="themeIcon"></i>
                 </button>
-
             </div>
-
         </div>
-
     </header>
 
-
-    <!-- PAGE -->
-    <div class="page-wrapper">
-
+    <!-- PAGE WRAPPER -->
+    <div class="page-wrapper py-4">
         <div class="container-xl">
-
-
-            <!-- HEADER -->
-            <div class="page-header d-print-none">
-
+            
+            <!-- PAGE HEADER -->
+            <div class="page-header mb-4">
                 <div class="row align-items-center">
-
                     <div class="col">
-
-                        <h2 class="page-title">
+                        <h2 class="page-title fs-1 fw-bold">
                             Günaydın 👋
                         </h2>
-
-                        <div class="text-secondary">
-                            Güncel bilgileri tek yerden takip et.
+                        <div class="text-secondary mt-1">
+                            Güncel finans, hava ve haber verileri tek ekranda.
                         </div>
-
                     </div>
-
                     <div class="col-auto">
-
-                        <div
-                            class="text-secondary"
-                            id="currentDate"
-                        >
+                        <div class="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill shadow-sm" id="currentDate">
+                            <i class="ti ti-calendar me-1"></i> --
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
 
-
-            <!-- MODULE SELECTOR -->
-            <div class="module-selector mb-4">
-
-                <button
-                    class="module-btn active"
-                    data-module="weather"
-                >
-                    <i class="ti ti-cloud"></i>
-                    Hava
-                </button>
-
-
-                <button
-                    class="module-btn active"
-                    data-module="currency"
-                >
-                    <i class="ti ti-currency-dollar"></i>
-                    Döviz
-                </button>
-
-
-                <button
-                    class="module-btn active"
-                    data-module="gold"
-                >
-                    <i class="ti ti-coins"></i>
-                    Altın
-                </button>
-
-
-                <button
-                    class="module-btn active"
-                    data-module="crypto"
-                >
-                    <i class="ti ti-brand-bitcoin"></i>
-                    Kripto
-                </button>
-
-
-                <button
-                    class="module-btn active"
-                    data-module="stocks"
-                >
-                    <i class="ti ti-chart-line"></i>
-                    Borsa
-                </button>
-
-
-                <button
-                    class="module-btn active"
-                    data-module="news"
-                >
-                    <i class="ti ti-news"></i>
-                    Haberler
-                </button>
-
+            <!-- MODULE SELECTOR BAR -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex flex-wrap gap-2 align-items-center" id="moduleSelector">
+                        <span class="text-secondary small fw-semibold me-2 d-none d-sm-inline">
+                            <i class="ti ti-adjustments me-1"></i> Modüller:
+                        </span>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="weather">
+                            <i class="ti ti-cloud me-1"></i> Hava
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="currency">
+                            <i class="ti ti-currency-dollar me-1"></i> Döviz
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="gold">
+                            <i class="ti ti-coins me-1"></i> Altın
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="crypto">
+                            <i class="ti ti-brand-bitcoin me-1"></i> Kripto
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="stocks">
+                            <i class="ti ti-chart-line me-1"></i> Borsa
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="news">
+                            <i class="ti ti-news me-1"></i> Haberler
+                        </button>
+                    </div>
+                </div>
             </div>
 
+            <!-- DASHBOARD GRID -->
+            <div class="row row-cards g-3">
 
-            <!-- DASHBOARD -->
-            <div class="row row-cards">
-
-
-                <!-- ================================= -->
-                <!-- WEATHER -->
-                <!-- ================================= -->
-
-                <div
-                    class="col-lg-5 module-card"
-                    data-module-card="weather"
-                >
-
-                    <div class="card weather-card">
-
-                        <div class="card-body">
-
-
-                            <div class="d-flex justify-content-between">
-
-                                <div>
-
-                                    <div class="text-secondary">
-                                        Hava Durumu
+                <!-- WEATHER MODULE -->
+                <div class="col-lg-5 col-md-12 module-card" data-module-card="weather">
+                    <div class="card card-hover shadow-sm h-100 overflow-hidden border-0">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="badge bg-blue-lt mb-2">Hava Durumu</span>
+                                        <h3 class="card-title fs-2 fw-bold mb-0" id="weatherCity">İstanbul</h3>
                                     </div>
-
-                                    <h3
-                                        class="card-title"
-                                        id="weatherCity"
-                                    >
-                                        İstanbul
-                                    </h3>
-
-                                </div>
-
-
-                                <div class="weather-icon">
-
-                                    <i
-                                        class="ti ti-sun"
-                                        id="weatherIcon"
-                                    ></i>
-
-                                </div>
-
-                            </div>
-
-
-                            <!-- TEMPERATURE -->
-
-                            <div
-                                class="weather-temperature"
-                                id="weatherTemperature"
-                            >
-                                --°
-                            </div>
-
-
-                            <!-- CONDITION -->
-
-                            <div
-                                class="text-secondary"
-                                id="weatherCondition"
-                            >
-                                Veriler yükleniyor...
-                            </div>
-
-
-                            <!-- WEATHER DETAILS -->
-
-                            <div class="row mt-4">
-
-
-                                <!-- HUMIDITY -->
-
-                                <div class="col">
-
-                                    <div class="text-secondary">
-                                        Nem
+                                    <div class="weather-icon-wrapper p-3 bg-light rounded-circle text-primary">
+                                        <i class="ti ti-sun fs-1" id="weatherIcon"></i>
                                     </div>
-
-                                    <strong id="weatherHumidity">
-                                        --%
-                                    </strong>
-
                                 </div>
 
-
-                                <!-- FEELS LIKE -->
-
-                                <div class="col">
-
-                                    <div class="text-secondary">
-                                        Hissedilen
+                                <div class="my-4">
+                                    <div class="display-3 fw-bold text-dark lh-1" id="weatherTemperature">--°</div>
+                                    <div class="text-secondary mt-2 fs-4" id="weatherCondition">
+                                        Veriler yükleniyor...
                                     </div>
-
-                                    <strong id="weatherFeelsLike">
-                                        --°
-                                    </strong>
-
                                 </div>
+                            </div>
 
-
-                                <!-- WIND -->
-
-                                <div class="col">
-
-                                    <div class="text-secondary">
-                                        Rüzgar
+                            <div>
+                                <div class="row text-center g-2 p-3 bg-body-tertiary rounded-3 mb-3">
+                                    <div class="col-4 border-end">
+                                        <div class="text-secondary small">Nem</div>
+                                        <strong class="fs-5" id="weatherHumidity">--%</strong>
                                     </div>
-
-                                    <strong id="weatherWind">
-                                        -- km/h
-                                    </strong>
-
+                                    <div class="col-4 border-end">
+                                        <div class="text-secondary small">Hissedilen</div>
+                                        <strong class="fs-5" id="weatherFeelsLike">--°</strong>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-secondary small">Rüzgar</div>
+                                        <strong class="fs-5" id="weatherWind">-- km/h</strong>
+                                    </div>
                                 </div>
 
+                                <div class="d-flex justify-content-between align-items-center pt-2">
+                                    <span class="text-secondary extra-small" id="weatherUpdated"></span>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary" id="locationButton" title="Konumumu Kullan">
+                                            <i class="ti ti-map-pin"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" id="cityButton">
+                                            <i class="ti ti-building me-1"></i> Şehir
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-
-
-                            <!-- UPDATE TIME -->
-
-                            <div
-                                class="text-secondary mt-3"
-                                id="weatherUpdated"
-                            >
-                            </div>
-
-
-                            <!-- LOCATION BUTTONS -->
-
-                            <div class="mt-4">
-
-                                <button
-                                    class="btn btn-outline-primary"
-                                    id="locationButton"
-                                >
-                                    <i class="ti ti-map-pin"></i>
-                                    Konumumu Kullan
-                                </button>
-
-
-                                <button
-                                    class="btn btn-outline-secondary"
-                                    id="cityButton"
-                                >
-                                    <i class="ti ti-building"></i>
-                                    Şehir Seç
-                                </button>
-
-                            </div>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
-
-                <!-- ================================= -->
-                <!-- CURRENCY -->
-                <!-- ================================= -->
-
-                <div
-                    class="col-lg-7 module-card"
-                    data-module-card="currency"
-                >
-
-                    <div class="card">
-
-                        <div class="card-header">
-
-                            <h3 class="card-title">
-
-                                <i class="ti ti-currency-dollar"></i>
-
-                                Döviz Kurları
-
+                <!-- CURRENCY MODULE -->
+                <div class="col-lg-7 col-md-12 module-card" data-module-card="currency">
+                    <div class="card card-hover shadow-sm h-100 border-0">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <h3 class="card-title fw-bold">
+                                <i class="ti ti-currency-dollar text-primary me-2"></i>Döviz Kurları
                             </h3>
-
                         </div>
-
-
                         <div class="table-responsive">
-
-                            <table class="table card-table table-vcenter">
-
+                            <table class="table card-table table-vcenter text-nowrap">
                                 <thead>
-
                                     <tr>
                                         <th>Parite</th>
                                         <th>Kur</th>
-                                        <th>Tarih</th>
+                                        <th class="text-end">Durum</th>
                                     </tr>
-
                                 </thead>
-
-
                                 <tbody id="currencyTableBody">
-
                                     <tr>
-                                        <td colspan="3" class="text-center">
-                                            Kurlar yukleniyor...
+                                        <td colspan="3" class="text-center py-4">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                            Kurlar yükleniyor...
                                         </td>
                                     </tr>
-
                                 </tbody>
-
                             </table>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
-                <!-- ================================= -->
-                <!-- GOLD -->
-                <!-- ================================= -->
-
-                <div
-                    class="col-lg-7 module-card"
-                    data-module-card="gold"
-                >
-
-                    <div class="card">
-
-                        <div class="card-header">
-
-                            <h3 class="card-title">
-
-                                <i class="ti ti-coins"></i>
-
-                                Altın Fiyatları
-
+                <!-- GOLD MODULE -->
+                <div class="col-lg-7 col-md-12 module-card" data-module-card="gold">
+                    <div class="card card-hover shadow-sm h-100 border-0">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <h3 class="card-title fw-bold">
+                                <i class="ti ti-coins text-warning me-2"></i>Altın Fiyatları
                             </h3>
-
                         </div>
-
-
                         <div class="table-responsive">
-
-                            <table class="table card-table table-vcenter">
-
+                            <table class="table card-table table-vcenter text-nowrap">
                                 <thead>
-
                                     <tr>
                                         <th>Ürün</th>
                                         <th>Alış</th>
-                                        <th>Satış</th>
+                                        <th>Satış / Değişim</th>
                                     </tr>
-
                                 </thead>
-
-
                                 <tbody id="goldTableBody">
-
                                     <tr>
-                                        <td colspan="3" class="text-center">
+                                        <td colspan="3" class="text-center py-4">
+                                            <div class="spinner-border spinner-border-sm text-warning me-2"></div>
                                             Altın fiyatları yükleniyor...
                                         </td>
                                     </tr>
-
                                 </tbody>
-
                             </table>
-
                         </div>
-
                     </div>
-
                 </div>
-                <!-- ================================= -->
-                <!-- CRYPTO -->
-                <!-- ================================= -->
 
-                <div
-                    class="col-lg-7 module-card"
-                    data-module-card="crypto"
-                >
-
-                    <div class="card">
-
-                        <div class="card-header">
-
-                            <h3 class="card-title">
-
-                                <i class="ti ti-brand-bitcoin"></i>
-
-                                Kripto
-
+                <!-- CRYPTO MODULE -->
+                <div class="col-lg-5 col-md-12 module-card" data-module-card="crypto">
+                    <div class="card card-hover shadow-sm h-100 border-0">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <h3 class="card-title fw-bold">
+                                <i class="ti ti-brand-bitcoin text-orange me-2"></i>Kripto Varlıklar
                             </h3>
-
                         </div>
-
-
-                        <div
-                            class="list-group list-group-flush"
-                        >
-
-
-                            <!-- BITCOIN -->
-
-                            <div class="list-group-item">
-
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item py-3">
                                 <div class="row align-items-center">
-
                                     <div class="col-auto">
-
-                                        <span
-                                            class="avatar bg-orange-lt"
-                                        >
-                                            ₿
-                                        </span>
-
+                                        <span class="avatar bg-orange-lt rounded-circle">₿</span>
                                     </div>
-
-
                                     <div class="col">
-
-                                        <strong>
-                                            Bitcoin
-                                        </strong>
-
-                                        <div class="text-secondary">
-                                            BTC
-                                        </div>
-
+                                        <strong class="d-block">Bitcoin</strong>
+                                        <span class="text-secondary small">BTC</span>
                                     </div>
-
-
-                                    <div
-                                        class="col-auto text-end"
-                                    >
-
-                                        <strong>
-                                            $112,450
-                                        </strong>
-
-                                        <div class="text-green">
-                                            +2.41%
-                                        </div>
-
+                                    <div class="col-auto text-end">
+                                        <strong class="d-block">$112,450</strong>
+                                        <span class="badge bg-green-lt">+2.41%</span>
                                     </div>
-
                                 </div>
-
                             </div>
-
-
-
-                            <!-- ETHEREUM -->
-
-                            <div class="list-group-item">
-
+                            <div class="list-group-item py-3">
                                 <div class="row align-items-center">
-
                                     <div class="col-auto">
-
-                                        <span
-                                            class="avatar bg-blue-lt"
-                                        >
-                                            Ξ
-                                        </span>
-
+                                        <span class="avatar bg-blue-lt rounded-circle">Ξ</span>
                                     </div>
-
-
                                     <div class="col">
-
-                                        <strong>
-                                            Ethereum
-                                        </strong>
-
-                                        <div class="text-secondary">
-                                            ETH
-                                        </div>
-
+                                        <strong class="d-block">Ethereum</strong>
+                                        <span class="text-secondary small">ETH</span>
                                     </div>
-
-
-                                    <div
-                                        class="col-auto text-end"
-                                    >
-
-                                        <strong>
-                                            $4,280
-                                        </strong>
-
-                                        <div class="text-red">
-                                            -0.82%
-                                        </div>
-
+                                    <div class="col-auto text-end">
+                                        <strong class="d-block">$4,280</strong>
+                                        <span class="badge bg-red-lt">-0.82%</span>
                                     </div>
-
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
-
-                <!-- ================================= -->
-                <!-- STOCKS -->
-                <!-- ================================= -->
-
-                <div
-                    class="col-lg-5 module-card"
-                    data-module-card="stocks"
-                >
-
-                    <div class="card">
-
-                        <div class="card-header">
-
-                            <h3 class="card-title">
-
-                                <i class="ti ti-chart-line"></i>
-
-                                Borsa
-
+                <!-- STOCKS MODULE -->
+                <div class="col-lg-5 col-md-12 module-card" data-module-card="stocks">
+                    <div class="card card-hover shadow-sm h-100 border-0">
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+                            <h3 class="card-title fw-bold">
+                                <i class="ti ti-chart-line text-success me-2"></i>Borsa Takip
                             </h3>
-
                         </div>
-
-
-                        <div class="card-body">
-
-
-                            <div class="stock-item">
-
-                                <span>
-                                    THYAO
-                                </span>
-
-                                <strong>
-                                    312.40 ₺
-                                </strong>
-
-                                <span class="text-green">
-                                    +1.24%
-                                </span>
-
+                        <div class="card-body" id="stockList">
+                            <div class="text-center py-4 text-secondary">
+                                <div class="spinner-border spinner-border-sm me-2"></div>
+                                Hisse fiyatları yükleniyor...
                             </div>
-
-
-                            <div class="stock-item">
-
-                                <span>
-                                    ASELS
-                                </span>
-
-                                <strong>
-                                    168.20 ₺
-                                </strong>
-
-                                <span class="text-green">
-                                    +0.74%
-                                </span>
-
-                            </div>
-
-
-                            <div class="stock-item">
-
-                                <span>
-                                    TUPRS
-                                </span>
-
-                                <strong>
-                                    192.80 ₺
-                                </strong>
-
-                                <span class="text-red">
-                                    -0.32%
-                                </span>
-
-                            </div>
-
                         </div>
-
                     </div>
-
                 </div>
 
-
-
-                <!-- ================================= -->
-                <!-- NEWS -->
-                <!-- ================================= -->
-
-                <!-- ================================= -->
-<!-- NEWS -->
-<!-- ================================= -->
-
-<div
-    class="col-12 module-card"
-    data-module-card="news"
->
-
-    <div class="card">
-
-        <div class="card-header">
-
-            <div class="d-flex flex-column w-100">
-
-                <div class="d-flex align-items-center justify-content-between">
-
-                    <h3 class="card-title mb-0">
-
-                        <i class="ti ti-news"></i>
-
-                        Son Dakika Haberleri
-
-                    </h3>
-
-                    <button
-                        class="btn btn-sm btn-ghost-secondary"
-                        id="refreshNews"
-                        title="Haberleri yenile"
-                    >
-
-                        <i class="ti ti-refresh"></i>
-
-                    </button>
-
-                </div>
-
-
-                <!-- KAYNAK FİLTRESİ -->
-
-                <div
-                    class="btn-list mt-3"
-                    id="newsSourceFilters"
-                >
-
-                    <button
-                        class="btn btn-sm btn-primary news-source-btn active"
-                        data-source="all"
-                    >
-                        Tumu
-                    </button>
-
-                </div>
-
-
-                <div
-                    class="text-secondary mt-2 news-updated"
-                    id="newsUpdated"
-                >
-                    Son guncelleme bekleniyor...
+                <!-- NEWS MODULE -->
+                <div class="col-lg-7 col-md-12 module-card" data-module-card="news">
+                    <div class="card card-hover shadow-sm h-100 border-0">
+                        <div class="card-header bg-transparent">
+                            <div class="w-100">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h3 class="card-title fw-bold mb-0">
+                                        <i class="ti ti-news text-info me-2"></i>Son Dakika Haberleri
+                                    </h3>
+                                    <button class="btn btn-sm btn-icon btn-ghost-secondary rounded-circle" id="refreshNews" title="Yenile">
+                                        <i class="ti ti-refresh"></i>
+                                    </button>
+                                </div>
+                                <div class="d-flex flex-wrap gap-1 mt-2" id="newsSourceFilters">
+                                    <button class="btn btn-xs btn-primary news-source-btn active" data-source="all">Tümü</button>
+                                </div>
+                                <div class="text-secondary extra-small mt-2" id="newsUpdated">
+                                    Son güncelleme bekleniyor...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group list-group-flush overflow-auto" style="max-height: 480px;" id="newsList">
+                            <div class="list-group-item text-center py-5">
+                                <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                Haberler yükleniyor...
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
-
         </div>
-
-
-        <!-- HABERLER -->
-
-        <div
-            class="list-group list-group-flush"
-            id="newsList"
-        >
-
-            <div class="list-group-item text-center py-5">
-
-                <div class="spinner-border spinner-border-sm me-2"></div>
-
-                Haberler yükleniyor...
-
-            </div>
-
-        </div>
-
     </div>
 
-</div>
-        <!-- FOOTER -->
-
-        <footer class="footer footer-transparent">
-
-            <div class="container-xl">
-
-                <div class="text-center text-secondary">
-                    Daily Dashboard
-                </div>
-
+    <!-- FOOTER -->
+    <footer class="footer footer-transparent border-top py-3">
+        <div class="container-xl">
+            <div class="text-center text-secondary small">
+                Daily Dashboard &copy; ${new Date().getFullYear()} — Tüm hakları saklıdır.
             </div>
-
-        </footer>
-
-    </div>
-
+        </div>
+    </footer>
 </div>
 
-
-<!-- ================================= -->
 <!-- CITY MODAL -->
-<!-- ================================= -->
-
-<div
-    class="modal modal-blur fade"
-    id="cityModal"
-    tabindex="-1"
->
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content">
-
-
+<div class="modal modal-blur fade" id="cityModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow">
             <div class="modal-header">
-
-                <h5 class="modal-title">
-                    Şehir Seç
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                ></button>
-
+                <h5 class="modal-title fw-bold">Şehir Seç</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
-
             <div class="modal-body">
-
-                <label class="form-label">
-                    Şehir
-                </label>
-
-                <select
-                    class="form-select"
-                    id="citySelect"
-                >
-
-                    <option value="">
-                        Şehir seçin
-                    </option>
-
+                <label class="form-label">Şehir Listesi</label>
+                <select class="form-select" id="citySelect">
+                    <option value="">Seçiniz...</option>
                 </select>
-
             </div>
-
-
             <div class="modal-footer">
-
-                <button
-                    class="btn btn-primary"
-                    id="saveCity"
-                >
-                    Kaydet
-                </button>
-
+                <button class="btn btn-primary w-100" id="saveCity">Kaydet ve Güncelle</button>
             </div>
-
-
         </div>
-
     </div>
-
 </div>
-
 `;
 
-
 // ======================================================
-// DATE
+// DATE MANAGEMENT
 // ======================================================
-
 function updateDate() {
-
-    const dateElement =
-        document.querySelector("#currentDate");
-
-    const now = new Date();
-
-    dateElement.textContent =
-        now.toLocaleDateString(
-            "tr-TR",
-            {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            }
-        );
+    const dateElement = document.querySelector("#currentDate");
+    if (dateElement) {
+        const now = new Date();
+        dateElement.innerHTML = `<i class="ti ti-calendar me-1"></i> ${now.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}`;
+    }
 }
-
 updateDate();
-
 
 // ======================================================
 // MODULE SYSTEM
 // ======================================================
-
-const moduleButtons =
-    document.querySelectorAll(".module-btn");
-
-
-const savedModules =
-    JSON.parse(
-        localStorage.getItem("dashboardModules")
-    );
-
-
-const activeModules =
-    savedModules || [
-        "weather",
-        "currency",
-        "gold",
-        "crypto",
-        "stocks",
-        "news"
-    ];
-
-
-// Sayfa açılırken modül durumlarını uygula
+const moduleButtons = document.querySelectorAll(".module-btn");
+const savedModules = JSON.parse(localStorage.getItem("dashboardModules"));
+const activeModules = savedModules || ["weather", "currency", "gold", "crypto", "stocks", "news"];
 
 moduleButtons.forEach((button) => {
-
-    const moduleName =
-        button.dataset.module;
-
-    const card =
-        document.querySelector(
-            `[data-module-card="${moduleName}"]`
-        );
-
-
-    const isActive =
-        activeModules.includes(moduleName);
-
+    const moduleName = button.dataset.module;
+    const card = document.querySelector(`[data-module-card="${moduleName}"]`);
+    const isActive = activeModules.includes(moduleName);
 
     if (isActive) {
-
         button.classList.add("active");
-
-        card?.classList.remove("hidden");
-
+        card?.classList.remove("d-none");
     } else {
-
         button.classList.remove("active");
-
-        card?.classList.add("hidden");
-
+        card?.classList.add("d-none");
     }
-
 });
-
-
-// Modül butonları
 
 moduleButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        const moduleName = button.dataset.module;
+        const card = document.querySelector(`[data-module-card="${moduleName}"]`);
 
-    button.addEventListener(
-        "click",
-        () => {
+        button.classList.toggle("active");
+        card?.classList.toggle("d-none");
 
-            const moduleName =
-                button.dataset.module;
-
-            const card =
-                document.querySelector(
-                    `[data-module-card="${moduleName}"]`
-                );
-
-
-            button.classList.toggle("active");
-
-
-            if (
-                button.classList.contains("active")
-            ) {
-
-                card?.classList.remove("hidden");
-
-            } else {
-
-                card?.classList.add("hidden");
-
+        const currentModules = [];
+        moduleButtons.forEach((btn) => {
+            if (btn.classList.contains("active")) {
+                currentModules.push(btn.dataset.module);
             }
-
-
-            // Aktif modülleri kaydet
-
-            const currentModules = [];
-
-
-            moduleButtons.forEach((btn) => {
-
-                if (
-                    btn.classList.contains("active")
-                ) {
-
-                    currentModules.push(
-                        btn.dataset.module
-                    );
-
-                }
-
-            });
-
-
-            localStorage.setItem(
-                "dashboardModules",
-                JSON.stringify(currentModules)
-            );
-
-        }
-    );
-
+        });
+        localStorage.setItem("dashboardModules", JSON.stringify(currentModules));
+    });
 });
 
+// ======================================================
+// THEME SWITCHER
+// ======================================================
+const themeButton = document.querySelector("#themeToggle");
+const themeIcon = document.querySelector("#themeIcon");
+
+function applyTheme(theme) {
+    if (theme === "dark") {
+        document.body.setAttribute("data-bs-theme", "dark");
+        themeIcon.className = "ti ti-sun fs-2 text-warning";
+    } else {
+        document.body.removeAttribute("data-bs-theme");
+        themeIcon.className = "ti ti-moon fs-2";
+    }
+}
+
+const savedTheme = localStorage.getItem("dashboardTheme") || "light";
+applyTheme(savedTheme);
+
+themeButton.addEventListener("click", () => {
+    const currentTheme = document.body.hasAttribute("data-bs-theme") ? "dark" : "light";
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    localStorage.setItem("dashboardTheme", newTheme);
+    applyTheme(newTheme);
+});
 
 // ======================================================
-// WEATHER
+// WEATHER API
 // ======================================================
-
-async function loadWeather(
-    latitude,
-    longitude,
-    cityName = null
-) {
-
-    const temperature =
-        document.querySelector(
-            "#weatherTemperature"
-        );
-
-    const condition =
-        document.querySelector(
-            "#weatherCondition"
-        );
-
-    const humidity =
-        document.querySelector(
-            "#weatherHumidity"
-        );
-
-    const feelsLike =
-        document.querySelector(
-            "#weatherFeelsLike"
-        );
-
-    const wind =
-        document.querySelector(
-            "#weatherWind"
-        );
-
-    const city =
-        document.querySelector(
-            "#weatherCity"
-        );
-
-    const updated =
-        document.querySelector(
-            "#weatherUpdated"
-        );
-
+async function loadWeather(latitude, longitude, cityName = null) {
+    const temperature = document.querySelector("#weatherTemperature");
+    const condition = document.querySelector("#weatherCondition");
+    const humidity = document.querySelector("#weatherHumidity");
+    const feelsLike = document.querySelector("#weatherFeelsLike");
+    const wind = document.querySelector("#weatherWind");
+    const city = document.querySelector("#weatherCity");
+    const updated = document.querySelector("#weatherUpdated");
 
     try {
+        condition.textContent = "Güncelleniyor...";
+        const response = await fetch(`${API_URL}/api/weather?latitude=${latitude}&longitude=${longitude}`);
 
-        condition.textContent =
-            "Veriler yükleniyor...";
-
-
-        const response =
-            await fetch(
-                `${API_URL}/api/weather?latitude=${latitude}&longitude=${longitude}`
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Hava durumu alınamadı."
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        temperature.textContent =
-            `${Math.round(data.temperature)}°`;
-
-
-        humidity.textContent =
-            `${data.humidity}%`;
-
-
-        feelsLike.textContent =
-            `${Math.round(data.feels_like)}°`;
-
-
-        wind.textContent =
-            `${Math.round(data.wind_speed)} km/h`;
-
-
-        condition.textContent =
-            getWeatherDescription(
-                data.weather_code
-            );
-
-
-        if (cityName) {
-
-            city.textContent =
-                cityName;
-
-        }
-
-
-        updated.textContent =
-            `Son güncelleme: ${formatWeatherTime(data.time)}`;
-
-
-        updateWeatherIcon(
-            data.weather_code
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Hava durumu hatası:",
-            error
-        );
-
-
-        temperature.textContent =
-            "--°";
-
-
-        humidity.textContent =
-            "--%";
-
-
-        feelsLike.textContent =
-            "--°";
-
-
-        wind.textContent =
-            "-- km/h";
-
-
-        condition.textContent =
-            "Hava durumu alınamadı";
-
-
-        updated.textContent =
-            "Veri kaynağına ulaşılamadı";
-
-    }
-
-}
-
-
-// ======================================================
-// WEATHER DESCRIPTION
-// ======================================================
-
-function getWeatherDescription(code) {
-
-    const weatherCodes = {
-
-        0: "Açık",
-
-        1: "Çoğunlukla açık",
-
-        2: "Parçalı bulutlu",
-
-        3: "Kapalı",
-
-        45: "Sisli",
-
-        48: "Yoğun sis",
-
-        51: "Hafif çiseleme",
-
-        53: "Çiseleme",
-
-        55: "Yoğun çiseleme",
-
-        61: "Hafif yağmur",
-
-        63: "Yağmurlu",
-
-        65: "Kuvvetli yağmur",
-
-        71: "Hafif kar",
-
-        73: "Kar yağışlı",
-
-        75: "Yoğun kar",
-
-        80: "Hafif sağanak",
-
-        81: "Sağanak",
-
-        82: "Kuvvetli sağanak",
-
-        95: "Gök gürültülü fırtına",
-
-        96: "Dolu ihtimali",
-
-        99: "Kuvvetli dolu"
-
-    };
-
-
-    return (
-        weatherCodes[code]
-        || "Bilinmeyen hava durumu"
-    );
-
-}
-
-
-// ======================================================
-// WEATHER ICON
-// ======================================================
-
-function updateWeatherIcon(code) {
-
-    const icon =
-        document.querySelector(
-            "#weatherIcon"
-        );
-
-
-    if (!icon) {
-        return;
-    }
-
-
-    let iconClass =
-        "ti ti-sun";
-
-
-    if (code === 0) {
-
-        iconClass =
-            "ti ti-sun";
-
-    } else if (
-        code === 1 ||
-        code === 2
-    ) {
-
-        iconClass =
-            "ti ti-cloud-sun";
-
-    } else if (code === 3) {
-
-        iconClass =
-            "ti ti-cloud";
-
-    } else if (
-        code === 45 ||
-        code === 48
-    ) {
-
-        iconClass =
-            "ti ti-cloud-fog";
-
-    } else if (
-        code >= 51 &&
-        code <= 67
-    ) {
-
-        iconClass =
-            "ti ti-cloud-rain";
-
-    } else if (
-        code >= 71 &&
-        code <= 77
-    ) {
-
-        iconClass =
-            "ti ti-snowflake";
-
-    } else if (
-        code >= 80 &&
-        code <= 82
-    ) {
-
-        iconClass =
-            "ti ti-cloud-rain";
-
-    } else if (code >= 95) {
-
-        iconClass =
-            "ti ti-cloud-storm";
-
-    }
-
-
-    icon.className =
-        iconClass;
-
-}
-
-
-// ======================================================
-// WEATHER TIME
-// ======================================================
-
-function formatWeatherTime(time) {
-
-    if (!time) {
-        return "";
-    }
-
-
-    const date =
-        new Date(time);
-
-
-    return date.toLocaleTimeString(
-        "tr-TR",
-        {
-            hour: "2-digit",
-            minute: "2-digit"
-        }
-    );
-
-}
-
-
-// ======================================================
-// GPS LOCATION
-// ======================================================
-
-function useCurrentLocation() {
-
-    if (!navigator.geolocation) {
-
-        alert(
-            "Tarayıcınız konum özelliğini desteklemiyor."
-        );
-
-        return;
-    }
-
-
-    navigator.geolocation.getCurrentPosition(
-
-        async (position) => {
-
-            const latitude =
-                position.coords.latitude;
-
-
-            const longitude =
-                position.coords.longitude;
-
-
-            // Konumu kaydet
-
-            localStorage.setItem(
-                "weatherLocation",
-                JSON.stringify({
-
-                    type: "gps",
-
-                    latitude,
-
-                    longitude
-
-                })
-            );
-
-
-            // Hava durumunu getir
-
-            await loadWeather(
-                latitude,
-                longitude,
-                "Mevcut Konum"
-            );
-
-        },
-
-
-        (error) => {
-
-            console.error(
-                "Konum hatası:",
-                error
-            );
-
-
-            alert(
-                "Konum alınamadı. Lütfen tarayıcınızdan konum izni verin."
-            );
-
-        },
-
-        {
-            enableHighAccuracy: true,
-
-            timeout: 10000,
-
-            maximumAge: 300000
-        }
-
-    );
-
-}
-
-
-// GPS butonu
-
-document
-    .querySelector("#locationButton")
-    .addEventListener(
-        "click",
-        useCurrentLocation
-    );
-
-
-// ======================================================
-// CITY LIST
-// ======================================================
-
-async function loadCities() {
-
-    const select =
-        document.querySelector(
-            "#citySelect"
-        );
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_URL}/api/weather/cities`
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Şehirler alınamadı."
-            );
-
-        }
-
-
-        const cities =
-            await response.json();
-
-
-        cities.forEach((city) => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                city.name;
-
-
-            option.textContent =
-                city.name;
-
-
-            option.dataset.latitude =
-                city.latitude;
-
-
-            option.dataset.longitude =
-                city.longitude;
-
-
-            select.appendChild(
-                option
-            );
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "Şehirler yüklenemedi:",
-            error
-        );
-
-    }
-
-}
-
-
-loadCities();
-
-
-// ======================================================
-// CITY MODAL
-// ======================================================
-
-const cityModalElement =
-    document.querySelector(
-        "#cityModal"
-    );
-
-
-const cityModal =
-    new bootstrap.Modal(
-        cityModalElement
-    );
-
-
-// Modal aç
-
-document
-    .querySelector("#cityButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            cityModal.show();
-
-        }
-    );
-
-
-// ======================================================
-// SAVE CITY
-// ======================================================
-
-document
-    .querySelector("#saveCity")
-    .addEventListener(
-        "click",
-        async () => {
-
-            const select =
-                document.querySelector(
-                    "#citySelect"
-                );
-
-
-            const option =
-                select.options[
-                    select.selectedIndex
-                ];
-
-
-            if (!option.value) {
-
-                return;
-
-            }
-
-
-            const latitude =
-                option.dataset.latitude;
-
-
-            const longitude =
-                option.dataset.longitude;
-
-
-            const cityName =
-                option.value;
-
-
-            // Kaydet
-
-            localStorage.setItem(
-                "weatherLocation",
-                JSON.stringify({
-
-                    type: "city",
-
-                    city: cityName,
-
-                    latitude,
-
-                    longitude
-
-                })
-            );
-
-
-            // Hava durumunu getir
-
-            await loadWeather(
-                latitude,
-                longitude,
-                cityName
-            );
-
-
-            cityModal.hide();
-
-        }
-    );
-
-
-// ======================================================
-// INITIALIZE WEATHER
-// ======================================================
-
-async function initializeWeather() {
-
-    const saved =
-        localStorage.getItem(
-            "weatherLocation"
-        );
-
-
-    // Daha önce seçim yapılmışsa
-
-    if (saved) {
-
-        try {
-
-            const location =
-                JSON.parse(saved);
-
-
-            await loadWeather(
-
-                location.latitude,
-
-                location.longitude,
-
-                location.type === "city"
-                    ? location.city
-                    : "Mevcut Konum"
-
-            );
-
-
-            return;
-
-        } catch (error) {
-
-            console.error(
-                "Kayıtlı konum okunamadı:",
-                error
-            );
-
-        }
-
-    }
-
-
-    // İlk açılış → İstanbul
-
-    await loadWeather(
-
-        41.0082,
-
-        28.9784,
-
-        "İstanbul"
-
-    );
-
-}
-
-
-// ======================================================
-// THEME
-// ======================================================
-
-const themeButton =
-    document.querySelector(
-        "#themeToggle"
-    );
-
-
-themeButton.addEventListener(
-    "click",
-    () => {
-
-        document.body.classList.toggle(
-            "theme-dark"
-        );
-
-    }
-);
-
-async function loadCurrencyRates() {
-
-    console.log("💰 Döviz fonksiyonu başladı");
-
-    const tableBody = document.getElementById(
-        "currencyTableBody"
-    );
-
-    if (!tableBody) {
-        console.error(
-            "❌ currencyTableBody bulunamadı!"
-        );
-        return;
-    }
-
-    try {
-
-        const response = await fetch(
-            `${API_URL}/api/currency`
-        );
-
-        console.log(
-            "💰 Currency status:",
-            response.status
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `API ${response.status} hatası`
-            );
-        }
+        if (!response.ok) throw new Error("Hava durumu verisi alınamadı.");
 
         const data = await response.json();
 
-        console.log(
-            "💰 Currency data:",
-            data
+        temperature.textContent = `${Math.round(data.temperature)}°`;
+        humidity.textContent = `${data.humidity}%`;
+        feelsLike.textContent = `${Math.round(data.feels_like)}°`;
+        wind.textContent = `${Math.round(data.wind_speed)} km/h`;
+        condition.textContent = getWeatherDescription(data.weather_code);
+
+        if (cityName) city.textContent = cityName;
+        updated.textContent = `Son güncelleme: ${formatWeatherTime(data.time)}`;
+        updateWeatherIcon(data.weather_code);
+
+    } catch (error) {
+        console.error("Hava durumu hatası:", error);
+        temperature.textContent = "--°";
+        humidity.textContent = "--%";
+        feelsLike.textContent = "--°";
+        wind.textContent = "-- km/h";
+        condition.textContent = "Veri alınamadı";
+        updated.textContent = "Ulaşılamadı";
+    }
+}
+
+function getWeatherDescription(code) {
+    const weatherCodes = {
+        0: "Açık", 1: "Çoğunlukla Açık", 2: "Parçalı Bulutlu", 3: "Kapalı",
+        45: "Sisli", 48: "Yoğun Sis", 51: "Hafif Çiseleme", 53: "Çiseleme",
+        55: "Yoğun Çiseleme", 61: "Hafif Yağmurlu", 63: "Yağmurlu", 65: "Kuvvetli Yağmur",
+        71: "Hafif Kar Yağışlı", 73: "Kar Yağışlı", 75: "Yoğun Kar", 80: "Sağanak Yağışlı",
+        81: "Kuvvetli Sağanak", 82: "Şiddetli Sağanak", 95: "Gök Gürültülü Fırtına"
+    };
+    return weatherCodes[code] || "Bilinmiyor";
+}
+
+function updateWeatherIcon(code) {
+    const icon = document.querySelector("#weatherIcon");
+    if (!icon) return;
+
+    let iconClass = "ti ti-sun";
+    if (code === 0) iconClass = "ti ti-sun text-warning";
+    else if (code === 1 || code === 2) iconClass = "ti ti-cloud-sun text-warning";
+    else if (code === 3) iconClass = "ti ti-cloud text-secondary";
+    else if (code >= 45 && code <= 48) iconClass = "ti ti-cloud-fog text-muted";
+    else if (code >= 51 && code <= 67) iconClass = "ti ti-cloud-rain text-primary";
+    else if (code >= 71 && code <= 77) iconClass = "ti ti-snowflake text-info";
+    else if (code >= 80 && code <= 82) iconClass = "ti ti-cloud-storm text-primary";
+    else if (code >= 95) iconClass = "ti ti-cloud-storm text-danger";
+
+    icon.className = `${iconClass} fs-1`;
+}
+
+function formatWeatherTime(time) {
+    if (!time) return "";
+    return new Date(time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function useCurrentLocation() {
+    if (!navigator.geolocation) {
+        alert("Tarayıcınız konum özelliğini desteklemiyor.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+            localStorage.setItem("weatherLocation", JSON.stringify({ type: "gps", latitude, longitude }));
+            await loadWeather(latitude, longitude, "Mevcut Konum");
+        },
+        (error) => {
+            console.error("Konum hatası:", error);
+            alert("Konum alınamadı. İzin verildiğinden emin olun.");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+    );
+}
+
+document.querySelector("#locationButton")?.addEventListener("click", useCurrentLocation);
+
+async function loadCities() {
+    const select = document.querySelector("#citySelect");
+    if (!select) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/weather/cities`);
+        if (!response.ok) throw new Error("Şehirler alınamadı.");
+
+        const cities = await response.json();
+        cities.forEach((city) => {
+            const option = document.createElement("option");
+            option.value = city.name;
+            option.textContent = city.name;
+            option.dataset.latitude = city.latitude;
+            option.dataset.longitude = city.longitude;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Şehirler yüklenemedi:", error);
+    }
+}
+loadCities();
+
+const cityModalElement = document.querySelector("#cityModal");
+const cityModal = new bootstrap.Modal(cityModalElement);
+
+document.querySelector("#cityButton")?.addEventListener("click", () => cityModal.show());
+
+document.querySelector("#saveCity")?.addEventListener("click", async () => {
+    const select = document.querySelector("#citySelect");
+    const option = select.options[select.selectedIndex];
+
+    if (!option.value) return;
+
+    const { latitude, longitude } = option.dataset;
+    const cityName = option.value;
+
+    localStorage.setItem("weatherLocation", JSON.stringify({ type: "city", city: cityName, latitude, longitude }));
+    await loadWeather(latitude, longitude, cityName);
+    cityModal.hide();
+});
+
+async function initializeWeather() {
+    const saved = localStorage.getItem("weatherLocation");
+    if (saved) {
+        try {
+            const location = JSON.parse(saved);
+            await loadWeather(location.latitude, location.longitude, location.type === "city" ? location.city : "Mevcut Konum");
+            return;
+        } catch (error) {
+            console.error("Kayıtlı konum okunamadı:", error);
+        }
+    }
+    await loadWeather(41.0082, 28.9784, "İstanbul");
+}
+
+// ======================================================
+// STOCKS API
+// ======================================================
+async function loadStocks() {
+    const stockList = document.getElementById("stockList");
+    if (!stockList) return;
+
+    const symbols = ["THYAO", "AAPL", "IBM"];
+
+    try {
+        const responses = await Promise.allSettled(
+            symbols.map(async (symbol) => {
+                const response = await fetch(`${API_URL}/api/stock/${symbol}`);
+                if (!response.ok) throw new Error(`${symbol} verisi alınamadı.`);
+                return response.json();
+            })
         );
 
+        const validStocks = responses.filter((r) => r.status === "fulfilled").map((r) => r.value);
+        if (!validStocks.length) throw new Error("Hiçbir hisse verisi alınamadı.");
+
+        stockList.innerHTML = "";
+
+        validStocks.forEach((data) => {
+            const symbol = data?.symbol || "UNKNOWN";
+            const price = Number(data?.close ?? data?.last_price ?? 0);
+            const change = Number(data?.change ?? 0);
+            const isPositive = change >= 0;
+
+            const row = document.createElement("div");
+            row.className = "d-flex justify-content-between align-items-center py-2 border-bottom last-border-0";
+            row.innerHTML = `
+                <div>
+                    <strong class="d-block fs-4">${symbol}</strong>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold fs-4">${price.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</div>
+                    <span class="badge ${isPositive ? "bg-green-lt" : "bg-red-lt"} small">
+                        <i class="ti ${isPositive ? "ti-trending-up" : "ti-trending-down"} me-1"></i>
+                        ${isPositive ? "+" : ""}${change.toFixed(2)}%
+                    </span>
+                </div>
+            `;
+            stockList.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error("Stok yükleme hatası:", error);
+        stockList.innerHTML = `<div class="text-danger text-center py-3"><i class="ti ti-alert-circle me-1"></i> Veriler yüklenemedi.</div>`;
+    }
+}
+
+// ======================================================
+// CURRENCY API
+// ======================================================
+async function loadCurrencyRates() {
+    const tableBody = document.getElementById("currencyTableBody");
+    if (!tableBody) return;
+
+    try {
+        const response = await fetch(`${API_URL}/api/currency`);
+        if (!response.ok) throw new Error(`API ${response.status} hatası`);
+
+        const data = await response.json();
         tableBody.innerHTML = "";
 
-        for (
-            const [currency, info]
-            of Object.entries(data.rates)
-        ) {
-
-            const row =
-                document.createElement("tr");
-
+        for (const [currency, info] of Object.entries(data.rates)) {
+            const row = document.createElement("tr");
             row.innerHTML = `
                 <td>
                     <div class="d-flex align-items-center">
-
-                        <span class="avatar avatar-sm me-2">
-                            ${info.symbol}
+                        <span class="avatar avatar-xs bg-primary-subtle text-primary rounded-circle me-2 fw-bold">
+                            ${info.symbol || "$"}
                         </span>
-
                         <div>
-                            <strong>
-                                ${currency} / TRY
-                            </strong>
-
-                            <div class="text-secondary">
-                                ${info.name}
-                            </div>
+                            <strong class="d-block">${currency} / TRY</strong>
+                            <span class="text-secondary small">${info.name}</span>
                         </div>
-
                     </div>
                 </td>
-
                 <td>
-                    <strong>
-                        ${Number(info.rate).toFixed(2)} ₺
-                    </strong>
+                    <strong class="fs-4">${Number(info.rate).toFixed(2)} ₺</strong>
                 </td>
-
-                <td>
-                    <span class="badge bg-green-lt">
-                        Güncel
-                    </span>
+                <td class="text-end">
+                    <span class="badge bg-green-lt rounded-pill">Güncel</span>
                 </td>
             `;
-
             tableBody.appendChild(row);
         }
-
-        console.log(
-            "✅ Kurlar dashboard'a eklendi"
-        );
-
     } catch (error) {
-
-        console.error(
-            "❌ Döviz yükleme hatası:",
-            error
-        );
-
-        tableBody.innerHTML = `
-            <tr>
-                <td
-                    colspan="3"
-                    class="text-center text-danger py-4"
-                >
-                    <i class="ti ti-alert-circle"></i>
-                    Döviz verileri alınamadı.
-                </td>
-            </tr>
-        `;
+        console.error("Döviz yükleme hatası:", error);
+        tableBody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4"><i class="ti ti-alert-circle me-1"></i> Döviz verileri alınamadı.</td></tr>`;
     }
 }
 
-
 // ======================================================
-// NEWS
+// GOLD API
 // ======================================================
-
-let allNews = [];
-
-let selectedNewsSource = "all";
-
-let usingFallbackNews = false;
-
-
-const FALLBACK_NEWS = [
-    {
-        title: "TCMB faiz kararina odaklanildi",
-        description: "Piyasalarda haftanin odagi Merkez Bankasi toplantisi ve enflasyon beklentileri oldu.",
-        source: "Ekonomi",
-        url: "https://www.aa.com.tr/tr/ekonomi",
-        image: ""
-    },
-    {
-        title: "BIST gunu arti bölgede kapatti",
-        description: "Bankacilik ve sanayi hisselerinde alicili seyirle Borsa Istanbul pozitif kapanis yapti.",
-        source: "Borsa",
-        url: "https://www.borsaistanbul.com/tr/",
-        image: ""
-    },
-    {
-        title: "Teknoloji sirketlerinden yeni yapay zeka hamleleri",
-        description: "Kuresel teknoloji firmalari verimlilik odakli yeni urun ve servislerini duyurdu.",
-        source: "Teknoloji",
-        url: "https://www.bloomberght.com/teknoloji",
-        image: ""
-    },
-    {
-        title: "Enerji fiyatlarinda dalgali gorunum suruyor",
-        description: "Petrol ve dogalgaz fiyatlarinda jeopolitik etkilerle gun ici oynaklik devam ediyor.",
-        source: "Dunya",
-        url: "https://www.reuters.com/world/",
-        image: ""
-    }
-];
-
-
-function getFallbackNews() {
-
-    const now = Date.now();
-
-    return FALLBACK_NEWS.map(
-        (article, index) => ({
-            ...article,
-            published_at: new Date(
-                now - (index * 45 * 60 * 1000)
-            ).toISOString()
-        })
-    );
-
-}
-
-
-function setNewsUpdatedText(message) {
-
-    const updated =
-        document.querySelector("#newsUpdated");
-
-    if (!updated) {
-        return;
-    }
-
-    updated.textContent = message;
-
-}
-
-
-function buildNewsSourceFilters() {
-
-    const filters =
-        document.querySelector("#newsSourceFilters");
-
-    if (!filters) {
-        return;
-    }
-
-
-    const sources = [
-        ...new Set(
-            allNews
-                .map((article) => article.source)
-                .filter(Boolean)
-        )
-    ].slice(0, 6);
-
-
-    if (
-        selectedNewsSource !== "all" &&
-        !sources.includes(selectedNewsSource)
-    ) {
-        selectedNewsSource = "all";
-    }
-
-
-    const buttons = ["all", ...sources].map(
-        (source) => {
-
-            const isActive =
-                selectedNewsSource === source;
-
-            const label =
-                source === "all"
-                    ? "Tumu"
-                    : source;
-
-            const variant = isActive
-                ? "btn-primary active"
-                : "btn-outline-secondary";
-
-            return `
-
-                <button
-                    class="btn btn-sm ${variant} news-source-btn"
-                    data-source="${escapeHtml(source)}"
-                    type="button"
-                >
-                    ${escapeHtml(label)}
-                </button>
-
-            `;
-
-        }
-    );
-
-
-    filters.innerHTML = buttons.join("");
-
-}
-
-
-// ======================================================
-// LOAD NEWS
-// ======================================================
-
-async function loadNews() {
-
-    const newsList =
-        document.querySelector("#newsList");
-
-    if (!newsList) {
-
-        console.error(
-            "newsList bulunamadı!"
-        );
-
-        return;
-    }
-
-
-    newsList.innerHTML = `
-
-        <div class="list-group-item text-center py-5">
-
-            <div class="spinner-border spinner-border-sm me-2"></div>
-
-            Haberler yükleniyor...
-
-        </div>
-
-    `;
-
-
-    try {
-
-        console.log(
-            "Haber API çağrılıyor..."
-        );
-
-
-        const response =
-            await fetch(
-                `${API_URL}/api/news`
-            );
-
-
-        console.log(
-            "Haber API status:",
-            response.status
-        );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Haber API hatası: ${response.status}`
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        console.log(
-            "Haber verisi:",
-            data
-        );
-
-
-        allNews =
-            Array.isArray(data.articles)
-                ? data.articles
-                : [];
-
-
-        usingFallbackNews =
-            allNews.length === 0;
-
-
-        if (usingFallbackNews) {
-            allNews = getFallbackNews();
-        }
-
-
-        setNewsUpdatedText(
-            `Son guncelleme: ${new Date().toLocaleTimeString("tr-TR", {
-                hour: "2-digit",
-                minute: "2-digit"
-            })}${
-                usingFallbackNews
-                    ? " • Yedek icerik"
-                    : ""
-            }`
-        );
-
-
-        buildNewsSourceFilters();
-
-        renderNews();
-
-
-    } catch (error) {
-
-        console.error(
-            "Haber yükleme hatası:",
-            error
-        );
-
-
-        usingFallbackNews = true;
-
-        allNews = getFallbackNews();
-
-
-        setNewsUpdatedText(
-            "Canli kaynak kullanilamadi • Yedek icerik gosteriliyor"
-        );
-
-
-        buildNewsSourceFilters();
-
-        renderNews();
-
-    }
-
-}
-
-// ======================================================
-// RENDER NEWS
-// ======================================================
-
-function renderNews() {
-
-    const newsList =
-        document.querySelector("#newsList");
-
-
-    if (!newsList) {
-        return;
-    }
-
-
-    let filteredNews =
-        allNews;
-
-
-    // Kaynak filtresi
-
-    if (
-        selectedNewsSource !== "all"
-    ) {
-
-        filteredNews =
-            allNews.filter(
-                (article) =>
-                    article.source ===
-                    selectedNewsSource
-            );
-
-    }
-
-
-    // Haber yoksa
-
-    if (
-        filteredNews.length === 0
-    ) {
-
-        newsList.innerHTML = `
-
-            <div
-                class="list-group-item text-center py-5"
-            >
-
-                <i
-                    class="ti ti-news-off"
-                    style="font-size: 32px;"
-                ></i>
-
-                <div class="mt-2">
-                    Bu kaynaktan haber bulunamadı.
-                </div>
-
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    newsList.innerHTML = "";
-
-
-    filteredNews.forEach(
-        (article) => {
-
-            const hasLink =
-                Boolean(article.url);
-
-            const item =
-                document.createElement(
-                    hasLink ? "a" : "div"
-                );
-
-
-            if (hasLink) {
-
-                item.href =
-                    article.url;
-
-                item.target =
-                    "_blank";
-
-                item.rel =
-                    "noopener noreferrer";
-
-                item.className =
-                    "list-group-item list-group-item-action";
-
-            } else {
-
-                item.className =
-                    "list-group-item";
-
-            }
-
-
-            const date =
-                formatNewsDate(
-                    article.published_at
-                );
-
-
-            item.innerHTML = `
-
-                <div class="row align-items-center">
-
-                    ${
-                        article.image
-                            ? `
-
-                            <div class="col-auto">
-
-                                <img
-                                    src="${article.image}"
-                                    class="rounded news-item-image"
-                                    alt=""
-                                    loading="lazy"
-                                >
-
-                            </div>
-
-                            `
-                            : ""
-                    }
-
-
-                    <div class="col">
-
-                        <div class="d-flex align-items-center gap-2 mb-1">
-
-                            <span class="badge bg-blue-lt">
-
-                                ${
-                                    escapeHtml(
-                                        article.source ||
-                                        "Haber"
-                                    )
-                                }
-
-                            </span>
-
-
-                            ${
-                                date
-                                    ? `
-                                    <span class="text-secondary small">
-                                        ${date}
-                                    </span>
-                                    `
-                                    : ""
-                            }
-
-                        </div>
-
-
-                        <strong class="d-block">
-
-                            ${escapeHtml(
-                                article.title || "Baslik bulunamadi"
-                            )}
-
-                        </strong>
-
-
-                        ${
-                            article.description
-                                ? `
-
-                                <div
-                                    class="text-secondary mt-1 news-description"
-                                >
-
-                                    ${escapeHtml(
-                                        stripHtml(
-                                            article.description
-                                        )
-                                    )}
-
-                                </div>
-
-                                `
-                                : ""
-                        }
-
-                    </div>
-
-
-                    <div class="col-auto">
-
-                        <i
-                            class="ti ti-chevron-right text-secondary"
-                        ></i>
-
-                    </div>
-
-                </div>
-
-            `;
-
-
-            newsList.appendChild(
-                item
-            );
-
-        }
-    );
-
-}
-// ======================================================
-// NEWS DATE
-// ======================================================
-
-function formatNewsDate(dateString) {
-
-    if (!dateString) {
-        return "";
-    }
-
-
-    const date =
-        new Date(dateString);
-
-
-    if (Number.isNaN(date.getTime())) {
-
-        return dateString;
-
-    }
-
-
-    return date.toLocaleString(
-        "tr-TR",
-        {
-            day: "2-digit",
-            month: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit"
-        }
-    );
-
-}
-// ======================================================
-// STRIP HTML
-// ======================================================
-
-function stripHtml(html) {
-
-    const temp =
-        document.createElement("div");
-
-
-    temp.innerHTML =
-        html || "";
-
-
-    return temp.textContent ||
-        temp.innerText ||
-        "";
-
-}
-// ======================================================
-// ESCAPE HTML
-// ======================================================
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-
-}
-// ======================================================
-// NEWS SOURCE FILTER
-// ======================================================
-
-const newsSourceFilters =
-    document.querySelector("#newsSourceFilters");
-
-
-newsSourceFilters?.addEventListener(
-    "click",
-    (event) => {
-
-        const button =
-            event.target.closest(
-                ".news-source-btn"
-            );
-
-        if (!button) {
-            return;
-        }
-
-
-        selectedNewsSource =
-            button.dataset.source || "all";
-
-
-        buildNewsSourceFilters();
-
-        renderNews();
-
-    }
-);
-
-    // ======================================================
-// REFRESH NEWS
-// ======================================================
-
-document
-    .querySelector("#refreshNews")
-    .addEventListener(
-        "click",
-        async () => {
-
-            const button =
-                document.querySelector(
-                    "#refreshNews"
-                );
-
-
-            button.disabled = true;
-
-
-            const icon =
-                button.querySelector("i");
-
-
-            icon.classList.add(
-                "ti-spin"
-            );
-
-
-            await loadNews();
-
-
-            icon.classList.remove(
-                "ti-spin"
-            );
-
-
-            button.disabled = false;
-
-        }
-    );
-
-// ======================================================
-// GOLD
-// ======================================================
-
 async function loadGold() {
-
-    const tableBody =
-        document.getElementById("goldTableBody");
-
-    if (!tableBody) {
-        console.error("goldTableBody bulunamadı!");
-        return;
-    }
+    const tableBody = document.getElementById("goldTableBody");
+    if (!tableBody) return;
 
     try {
-
-        const response = await fetch(
-            `${API_URL}/api/gold`
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Gold API: ${response.status}`
-            );
-        }
+        const response = await fetch(`${API_URL}/api/gold`);
+        if (!response.ok) throw new Error(`Gold API: ${response.status}`);
 
         const result = await response.json();
+        if (!result.success) throw new Error("API hatası");
 
-        console.log("🥇 Altın API:", result);
-
-        if (!result.success) {
-            throw new Error(
-                "Altın API başarısız cevap döndürdü."
-            );
-        }
-
-        // API'deki gerçek veri
         const goldData = result.data;
-
         tableBody.innerHTML = "";
 
         const goldNames = {
-            GA: "Gram Altın",
-            C: "Çeyrek Altın",
-            Y: "Yarım Altın",
-            T: "Tam Altın",
-            CMR: "Cumhuriyet Altını",
-            XAUUSD: "Ons Altın"
+            GA: "Gram Altın", C: "Çeyrek Altın", Y: "Yarım Altın",
+            T: "Tam Altın", CMR: "Cumhuriyet Altını", XAUUSD: "Ons Altın"
         };
 
+        Object.entries(goldData).forEach(([symbol, item]) => {
+            const name = goldNames[symbol] || symbol;
+            const currency = item.kur === "USD" ? "$" : "₺";
+            const alis = Number(item.alis).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const satis = Number(item.satis).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const degisim = Number(item.degisim);
+            const isPositive = degisim >= 0;
 
-        Object.entries(goldData).forEach(
-            ([symbol, item]) => {
-
-                const name =
-                    goldNames[symbol] || symbol;
-
-                const currency =
-                    item.kur === "USD"
-                        ? "$"
-                        : "₺";
-
-
-                const alis =
-                    Number(item.alis)
-                        .toLocaleString(
-                            "tr-TR",
-                            {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }
-                        );
-
-
-                const satis =
-                    Number(item.satis)
-                        .toLocaleString(
-                            "tr-TR",
-                            {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }
-                        );
-
-
-                const degisim =
-                    Number(item.degisim);
-
-
-                const changeClass =
-                    degisim >= 0
-                        ? "text-green"
-                        : "text-red";
-
-
-                const changeIcon =
-                    degisim >= 0
-                        ? "ti-trending-up"
-                        : "ti-trending-down";
-
-
-                const row =
-                    document.createElement("tr");
-
-
-                row.innerHTML = `
-
-                    <td>
-
-                        <div
-                            class="d-flex align-items-center"
-                        >
-
-                            <span
-                                class="avatar avatar-sm me-2"
-                            >
-
-                                ${item.sembol}
-
-                            </span>
-
-
-                            <div>
-
-                                <strong>
-                                    ${name}
-                                </strong>
-
-                                <div
-                                    class="text-secondary"
-                                >
-                                    ${symbol}
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </td>
-
-
-                    <td>
-
-                        <span
-                            class="text-secondary"
-                        >
-
-                            ${alis} ${currency}
-
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>
+                    <div class="d-flex align-items-center">
+                        <span class="avatar avatar-xs bg-warning-subtle text-warning rounded-circle me-2 fw-bold">
+                            ${item.sembol || "Au"}
                         </span>
-
-                    </td>
-
-
-                    <td>
-
-                        <strong>
-
-                            ${satis} ${currency}
-
-                        </strong>
-
-
-                        <div
-                            class="${changeClass} small"
-                        >
-
-                            <i
-                                class="ti ${changeIcon}"
-                            ></i>
-
-                            ${item.degisim}%
-
+                        <div>
+                            <strong class="d-block">${name}</strong>
+                            <span class="text-secondary small">${symbol}</span>
                         </div>
-
-                    </td>
-
-                `;
-
-
-                tableBody.appendChild(row);
-
-            }
-        );
-
+                    </div>
+                </td>
+                <td>
+                    <span class="text-secondary">${alis} ${currency}</span>
+                </td>
+                <td>
+                    <strong class="d-block fs-4">${satis} ${currency}</strong>
+                    <span class="${isPositive ? "text-green" : "text-red"} small">
+                        <i class="ti ${isPositive ? "ti-trending-up" : "ti-trending-down"} me-1"></i>${item.degisim}%
+                    </span>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
 
     } catch (error) {
-
-        console.error(
-            "🥇 Altın yükleme hatası:",
-            error
-        );
-
-
-        tableBody.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="3"
-                    class="text-center text-danger py-4"
-                >
-
-                    <i
-                        class="ti ti-alert-circle"
-                    ></i>
-
-                    Altın fiyatları alınamadı.
-
-                </td>
-
-            </tr>
-
-        `;
-
+        console.error("Altın yükleme hatası:", error);
+        tableBody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4"><i class="ti ti-alert-circle me-1"></i> Altın fiyatları alınamadı.</td></tr>`;
     }
 }
 
-loadNews();
+// ======================================================
+// NEWS API
+// ======================================================
+let allNews = [];
+let selectedNewsSource = "all";
+
+const FALLBACK_NEWS = [
+    { title: "TCMB faiz kararına odaklandı", description: "Piyasalarda haftanın odağı Merkez Bankası toplantısı oldu.", source: "Ekonomi", url: "#" },
+    { title: "BIST günü artı bölgede kapattı", description: "Borsa İstanbul alıcılı seyirle kapanış yaptı.", source: "Borsa", url: "#" }
+];
+
+async function loadNews() {
+    const newsList = document.querySelector("#newsList");
+    if (!newsList) return;
+
+    newsList.innerHTML = `<div class="list-group-item text-center py-5"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Haberler yükleniyor...</div>`;
+
+    try {
+        const response = await fetch(`${API_URL}/api/news`);
+        if (!response.ok) throw new Error("API Hatası");
+
+        const data = await response.json();
+        allNews = Array.isArray(data.articles) && data.articles.length ? data.articles : FALLBACK_NEWS;
+
+        document.querySelector("#newsUpdated").textContent = `Son güncelleme: ${new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`;
+        buildNewsSourceFilters();
+        renderNews();
+    } catch (error) {
+        console.error("Haber hatası:", error);
+        allNews = FALLBACK_NEWS;
+        document.querySelector("#newsUpdated").textContent = "Yedek içerik gösteriliyor";
+        buildNewsSourceFilters();
+        renderNews();
+    }
+}
+
+function buildNewsSourceFilters() {
+    const filters = document.querySelector("#newsSourceFilters");
+    if (!filters) return;
+
+    const sources = [...new Set(allNews.map((n) => n.source).filter(Boolean))].slice(0, 5);
+    const buttons = ["all", ...sources].map((source) => {
+        const isActive = selectedNewsSource === source;
+        return `<button class="btn btn-xs ${isActive ? "btn-primary active" : "btn-outline-secondary"} news-source-btn" data-source="${escapeHtml(source)}" type="button">${escapeHtml(source === "all" ? "Tümü" : source)}</button>`;
+    });
+    filters.innerHTML = buttons.join("");
+}
+
+function renderNews() {
+    const newsList = document.querySelector("#newsList");
+    if (!newsList) return;
+
+    let filteredNews = selectedNewsSource === "all" ? allNews : allNews.filter((n) => n.source === selectedNewsSource);
+
+    if (!filteredNews.length) {
+        newsList.innerHTML = `<div class="list-group-item text-center py-5 text-secondary">Haber bulunamadı.</div>`;
+        return;
+    }
+
+    newsList.innerHTML = "";
+    filteredNews.forEach((article) => {
+        const item = document.createElement(article.url ? "a" : "div");
+        if (article.url) {
+            item.href = article.url;
+            item.target = "_blank";
+            item.className = "list-group-item list-group-item-action py-3";
+        } else {
+            item.className = "list-group-item py-3";
+        }
+
+        item.innerHTML = `
+            <div class="row align-items-center g-2">
+                ${article.image ? `<div class="col-auto"><img src="${article.image}" class="rounded-2 object-cover" width="60" height="60" alt="" loading="lazy"></div>` : ""}
+                <div class="col">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-blue-lt small">${escapeHtml(article.source || "Haber")}</span>
+                    </div>
+                    <strong class="d-block text-body fs-4 lh-sm">${escapeHtml(article.title || "")}</strong>
+                    ${article.description ? `<p class="text-secondary small mb-0 mt-1 text-truncate">${escapeHtml(stripHtml(article.description))}</p>` : ""}
+                </div>
+            </div>
+        `;
+        newsList.appendChild(item);
+    });
+}
+
+function stripHtml(html) {
+    const temp = document.createElement("div");
+    temp.innerHTML = html || "";
+    return temp.textContent || temp.innerText || "";
+}
+
+function escapeHtml(value) {
+    return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+
+document.querySelector("#newsSourceFilters")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".news-source-btn");
+    if (!btn) return;
+    selectedNewsSource = btn.dataset.source || "all";
+    buildNewsSourceFilters();
+    renderNews();
+});
+
+document.querySelector("#refreshNews")?.addEventListener("click", async () => {
+    const btn = document.querySelector("#refreshNews");
+    btn.disabled = true;
+    await loadNews();
+    btn.disabled = false;
+});
+
+// INITIALIZATIONS
 initializeWeather();
 loadCurrencyRates();
+loadStocks();
 loadGold();
 loadNews();
