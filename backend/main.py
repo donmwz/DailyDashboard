@@ -6,6 +6,9 @@ from backend.routes.currency import router as currency_router
 from backend.routes.news import router as news_router
 from backend.routes.gold import router as gold_router
 from backend.routes.stock import router as stock_router
+from backend.routes.crypto import router as crypto_router
+
+
 
 app = FastAPI(
     title="Daily Dashboard API",
@@ -32,12 +35,14 @@ app.include_router(currency_router)
 app.include_router(news_router)
 app.include_router(gold_router)
 app.include_router(stock_router)
+app.include_router(crypto_router)
+
 
 
 @app.get("/")
 def root():
     return {
-        "message": "Daily Dashboard API çalışıyor 🚀"
+        "message": "API Çalışıyor..."
     }
 
 

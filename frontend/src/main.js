@@ -2,6 +2,7 @@ import "@tabler/core/dist/css/tabler.min.css";
 import "@tabler/core/dist/js/tabler.min.js";
 import "./style.css";
 import * as bootstrap from "bootstrap";
+import Sortable from "sortablejs";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -12,7 +13,7 @@ const API_URL = "http://127.0.0.1:8000";
 document.querySelector("#app").innerHTML = `
 <div class="page">
     <!-- NAVBAR -->
-    <header class="navbar navbar-expand-md navbar-light d-print-none sticky-top border-bottom bg-surface shadow-sm">
+        <header class="navbar navbar-expand-md navbar-light d-print-none sticky-top border-bottom bg-surface shadow-sm">
         <div class="container-xl">
             <a href="#" class="navbar-brand d-flex align-items-center gap-2">
                 <div class="p-2 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center">
@@ -24,10 +25,63 @@ document.querySelector("#app").innerHTML = `
                 </div>
             </a>
 
+            <!-- SAĞ ÜST KULLANICI PROFİL LOGOSU VE MENÜSÜ -->
             <div class="navbar-nav flex-row order-md-last align-items-center gap-2">
-                <button class="btn btn-icon btn-ghost-secondary rounded-circle" id="themeToggle" title="Tema Değiştir">
-                    <i class="ti ti-moon fs-2" id="themeIcon"></i>
-                </button>
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Kullanıcı Menüsü">
+                        <!-- Kullanıcı Profil Logosu / Avatarı -->
+                        <span class="avatar avatar-md bg-primary text-white fw-bold rounded-circle shadow-sm" id="navUserAvatar">
+                            <i class="ti ti-user fs-2"></i>
+                        </span>
+                    </a>
+
+                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow shadow-lg" style="min-width: 260px;">
+                        
+                        <!-- AKTİF KULLANICI BİLGİSİ -->
+                        <div class="px-3 py-2 border-bottom bg-body-tertiary rounded-top" id="activeUserHeaderInfo">
+                            <div class="fw-bold text-truncate" id="navUserName">Misafir Kullanıcı</div>
+                            <div class="small text-secondary text-truncate" id="navUserEmail">Oturum açılmadı</div>
+                        </div>
+
+                        <!-- GİRİŞ YAPILMAMIŞSA GÖSTERİLECEK ALAN -->
+                        <div id="guestActionMenu">
+                            <button class="dropdown-item py-2 text-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="ti ti-login me-2"></i> Giriş Yap
+                            </button>
+                            <button class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                <i class="ti ti-user-plus me-2"></i> Kayıt Ol
+                            </button>
+                        </div>
+
+                        <!-- GİRİŞ YAPILMIŞSA GÖSTERİLECEK PROFİL SEÇİM LİSTESİ -->
+                        <div id="loggedInActionMenu" class="d-none">
+                            <div class="dropdown-header fw-bold text-uppercase small text-secondary mt-2">Profili Değiştir</div>
+                            <div id="profileSelectList" class="my-1">
+                                <!-- Kayıtlı profiller dinamik yüklenecek -->
+                            </div>
+                            <a href="#" class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                <i class="ti ti-user-plus me-2"></i> Yeni Profil Ekle
+                            </a>
+                            <div class="dropdown-divider my-1"></div>
+                        </div>
+
+                        <div class="dropdown-divider my-1"></div>
+
+                        <!-- AYARLAR & ÖZELLEŞTİRMELER MODÜLÜ -->
+                        <div class="dropdown-header fw-bold text-uppercase small text-secondary">Tercihler</div>
+                        <button class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                            <i class="ti ti-settings me-2 text-secondary"></i> Ayarlar & Özelleştirme
+                        </button>
+
+                        <!-- ÇIKIŞ BUTONU -->
+                        <div id="logoutActionMenu" class="d-none">
+                            <div class="dropdown-divider my-1"></div>
+                            <button class="dropdown-item py-2 text-danger" id="logoutBtn">
+                                <i class="ti ti-logout me-2"></i> Oturumu Kapat
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -89,50 +143,65 @@ document.querySelector("#app").innerHTML = `
 
                 <!-- WEATHER MODULE -->
                 <div class="col-lg-5 col-md-12 module-card" data-module-card="weather">
-                    <div class="card card-hover shadow-sm h-100 overflow-hidden border-0">
-                        <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="card weather-card-shell card-hover shadow-sm h-100 border-0" data-weather-state="clear">
+                        <div class="weather-sky" aria-hidden="true">
+                            <span class="weather-sun"></span>
+                            <span class="weather-moon"></span>
+                            <span class="weather-stars"></span>
+                            <span class="weather-cloud weather-cloud-one"></span>
+                            <span class="weather-cloud weather-cloud-two"></span>
+                            <span class="weather-wave"></span>
+                            <span class="weather-wave weather-wave-two"></span>
+                            <span class="weather-snowflake weather-snowflake-one"></span>
+                            <span class="weather-snowflake weather-snowflake-two"></span>
+                            <span class="weather-snowflake weather-snowflake-three"></span>
+                            <span class="weather-snowflake weather-snowflake-four"></span>
+                            <span class="weather-snowflake weather-snowflake-five"></span>
+                        </div>
+
+                        <div class="card-body d-flex flex-column justify-content-between position-relative">
                             <div>
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <span class="badge bg-blue-lt mb-2">Hava Durumu</span>
-                                        <h3 class="card-title fs-2 fw-bold mb-0" id="weatherCity">İstanbul</h3>
+                                        <span class="badge bg-white bg-opacity-30 text-white mb-2">Hava Durumu</span>
+                                        <h3 class="card-title fs-2 fw-bold mb-0 text-white" id="weatherCity">İstanbul</h3>
                                     </div>
-                                    <div class="weather-icon-wrapper p-3 bg-light rounded-circle text-primary">
-                                        <i class="ti ti-sun fs-1" id="weatherIcon"></i>
+                                    <div class="weather-icon-wrapper p-3 bg-white bg-opacity-20 rounded-circle border border-white border-opacity-40">
+                                        <i class="ti ti-sun fs-1 text-white" id="weatherIcon"></i>
                                     </div>
                                 </div>
 
                                 <div class="my-4">
-                                    <div class="display-3 fw-bold text-dark lh-1" id="weatherTemperature">--°</div>
-                                    <div class="text-secondary mt-2 fs-4" id="weatherCondition">
+                                    <div class="display-3 fw-bold lh-1 text-white" id="weatherTemperature">--°</div>
+                                    <div class="mt-2 fs-4 text-white-50" id="weatherCondition">
                                         Veriler yükleniyor...
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <div class="row text-center g-2 p-3 bg-body-tertiary rounded-3 mb-3">
-                                    <div class="col-4 border-end">
-                                        <div class="text-secondary small">Nem</div>
-                                        <strong class="fs-5" id="weatherHumidity">--%</strong>
+                                <div class="row text-center g-2 p-3 weather-stats-card rounded-3 mb-3">
+                                    <div class="col-4 border-end border-white border-opacity-25">
+                                        <div class="text-white-50 small">Nem</div>
+                                        <strong class="fs-5 text-white" id="weatherHumidity">--%</strong>
                                     </div>
-                                    <div class="col-4 border-end">
-                                        <div class="text-secondary small">Hissedilen</div>
-                                        <strong class="fs-5" id="weatherFeelsLike">--°</strong>
+                                    <div class="col-4 border-end border-white border-opacity-25">
+                                        <div class="text-white-50 small">Hissedilen</div>
+                                        <strong class="fs-5 text-white" id="weatherFeelsLike">--°</strong>
                                     </div>
                                     <div class="col-4">
-                                        <div class="text-secondary small">Rüzgar</div>
-                                        <strong class="fs-5" id="weatherWind">-- km/h</strong>
+                                        <div class="text-white-50 small">Rüzgar</div>
+                                        <strong class="fs-5 text-white" id="weatherWind">-- km/h</strong>
                                     </div>
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center pt-2">
-                                    <span class="text-secondary extra-small" id="weatherUpdated"></span>
+                                    <span class="text-white-50 extra-small" id="weatherUpdated"></span>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary" id="locationButton" title="Konumumu Kullan">
+                                        <button class="btn btn-sm btn-glass" id="locationButton" title="Konumumu Kullan">
                                             <i class="ti ti-map-pin"></i>
                                         </button>
-                                        <button class="btn btn-sm btn-outline-secondary" id="cityButton">
+                                        <button class="btn btn-sm btn-glass" id="cityButton">
                                             <i class="ti ti-building me-1"></i> Şehir
                                         </button>
                                     </div>
@@ -204,47 +273,119 @@ document.querySelector("#app").innerHTML = `
 
                 <!-- CRYPTO MODULE -->
                 <div class="col-lg-5 col-md-12 module-card" data-module-card="crypto">
-                    <div class="card card-hover shadow-sm h-100 border-0">
-                        <div class="card-header bg-transparent border-bottom-0 pb-0">
-                            <h3 class="card-title fw-bold">
-                                <i class="ti ti-brand-bitcoin text-orange me-2"></i>Kripto Varlıklar
-                            </h3>
-                        </div>
-                        <div class="list-group list-group-flush">
-                            <div class="list-group-item py-3">
-                                <div class="row align-items-center">
-                                    <div class="col-auto">
-                                        <span class="avatar bg-orange-lt rounded-circle">₿</span>
-                                    </div>
-                                    <div class="col">
-                                        <strong class="d-block">Bitcoin</strong>
-                                        <span class="text-secondary small">BTC</span>
-                                    </div>
-                                    <div class="col-auto text-end">
-                                        <strong class="d-block">$112,450</strong>
-                                        <span class="badge bg-green-lt">+2.41%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="list-group-item py-3">
-                                <div class="row align-items-center">
-                                    <div class="col-auto">
-                                        <span class="avatar bg-blue-lt rounded-circle">Ξ</span>
-                                    </div>
-                                    <div class="col">
-                                        <strong class="d-block">Ethereum</strong>
-                                        <span class="text-secondary small">ETH</span>
-                                    </div>
-                                    <div class="col-auto text-end">
-                                        <strong class="d-block">$4,280</strong>
-                                        <span class="badge bg-red-lt">-0.82%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
+                    <div class="card card-hover shadow-sm h-100 border-0">
+
+                        <div class="card-header bg-transparent border-bottom-0 pb-0">
+
+                            <h3 class="card-title fw-bold">
+
+                                <i class="ti ti-brand-bitcoin text-orange me-2"></i>
+
+                                Kripto Varlıklar
+
+                            </h3>
+
+                        </div>
+
+
+                        <div
+                            class="list-group list-group-flush"
+                            id="cryptoList"
+                        >
+
+                            <!-- Bitcoin -->
+
+                            <div class="list-group-item py-3">
+
+                                <div class="row align-items-center">
+
+                                    <div class="col-auto">
+
+                                        <span
+                                            class="avatar bg-orange-lt rounded-circle"
+                                        >
+                                            ₿
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="col">
+
+                                        <strong class="d-block">
+                                            Bitcoin
+                                        </strong>
+
+                                        <span class="text-secondary small">
+                                            BTC
+                                        </span>
+
+                                    </div>
+
+
+                                    <div
+                                        class="col-auto text-end"
+                                        id="crypto-BTC"
+                                    >
+
+                                        <div class="spinner-border spinner-border-sm"></div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Ethereum -->
+
+                            <div class="list-group-item py-3">
+
+                                <div class="row align-items-center">
+
+                                    <div class="col-auto">
+
+                                        <span
+                                            class="avatar bg-blue-lt rounded-circle"
+                                        >
+                                            Ξ
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="col">
+
+                                        <strong class="d-block">
+                                            Ethereum
+                                        </strong>
+
+                                        <span class="text-secondary small">
+                                            ETH
+                                        </span>
+
+                                    </div>
+
+
+                                    <div
+                                        class="col-auto text-end"
+                                        id="crypto-ETH"
+                                    >
+
+                                        <div class="spinner-border spinner-border-sm"></div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
                 <!-- STOCKS MODULE -->
                 <div class="col-lg-5 col-md-12 module-card" data-module-card="stocks">
                     <div class="card card-hover shadow-sm h-100 border-0">
@@ -326,6 +467,95 @@ document.querySelector("#app").innerHTML = `
         </div>
     </div>
 </div>
+
+<!-- LOGIN MODAL -->
+<div class="modal modal-blur fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Giriş Yap</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="loginForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">E-posta</label>
+                        <input type="email" class="form-control" id="loginEmail" required placeholder="ornek@mail.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Şifre</label>
+                        <input type="password" class="form-control" id="loginPassword" required placeholder="******">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="modal modal-blur fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Kayıt Ol / Yeni Profil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="registerForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Ad Soyad</label>
+                        <input type="text" class="form-control" id="regName" required placeholder="John Doe">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">E-posta</label>
+                        <input type="email" class="form-control" id="regEmail" required placeholder="ornek@mail.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Şifre</label>
+                        <input type="password" class="form-control" id="regPassword" required placeholder="******">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary w-100">Profil Oluştur ve Geçiş Yap</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- AYARLAR VE ÖZELLEŞTİRMELER MODAL -->
+<div class="modal modal-blur fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">
+                    <i class="ti ti-settings me-2"></i>Ayarlar & Özelleştirme
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="fw-bold mb-3">Görünüm</h6>
+                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-body-tertiary rounded-3">
+                    <div>
+                        <strong class="d-block">Koyu Tema (Dark Mode)</strong>
+                        <span class="text-secondary small">Arayüzü karanlık moda geçir.</span>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" id="settingsThemeToggle">
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3">Sıfırlama</h6>
+                <button class="btn btn-outline-danger btn-sm w-100" id="resetDashboardBtn">
+                    <i class="ti ti-refresh me-1"></i> Dashboard Sıralamasını Ve Ayarlarını Sıfırla
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 `;
 
 // ======================================================
@@ -380,30 +610,194 @@ moduleButtons.forEach((button) => {
 });
 
 // ======================================================
-// THEME SWITCHER
+// USER PROFILE & SETTINGS SYSTEM
 // ======================================================
-const themeButton = document.querySelector("#themeToggle");
-const themeIcon = document.querySelector("#themeIcon");
+
+function getProfiles() {
+    return safeJsonParse(localStorage.getItem("dashboardProfiles"), []);
+}
+
+function getActiveProfile() {
+    return safeJsonParse(localStorage.getItem("activeProfile"), null);
+}
+
+function safeJsonParse(rawValue, fallback) {
+    if (rawValue === null || rawValue === undefined) return fallback;
+    try {
+        return JSON.parse(rawValue);
+    } catch {
+        return fallback;
+    }
+}
+
+function getInitials(name) {
+    if (!name) return "--";
+    const parts = name.trim().split(" ");
+    return parts.length > 1 
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : parts[0].slice(0, 2).toUpperCase();
+}
+
+// Arayüz ve Profil Menüsü Güncelleme
+function updateAuthUI() {
+    const activeUser = getActiveProfile();
+    const profiles = getProfiles();
+
+    const avatar = document.getElementById("navUserAvatar");
+    const nameEl = document.getElementById("navUserName");
+    const emailEl = document.getElementById("navUserEmail");
+    
+    const guestMenu = document.getElementById("guestActionMenu");
+    const loggedInMenu = document.getElementById("loggedInActionMenu");
+    const logoutMenu = document.getElementById("logoutActionMenu");
+    const selectList = document.getElementById("profileSelectList");
+
+    if (activeUser) {
+        // Oturum açık görünümü
+        const initials = getInitials(activeUser.name);
+        if (avatar) avatar.textContent = initials;
+        if (nameEl) nameEl.textContent = activeUser.name;
+        if (emailEl) emailEl.textContent = activeUser.email;
+
+        guestMenu?.classList.add("d-none");
+        loggedInMenu?.classList.remove("d-none");
+        logoutMenu?.classList.remove("d-none");
+
+        // Profil Listesini Oluştur
+        if (selectList) {
+            selectList.innerHTML = "";
+            profiles.forEach((prof) => {
+                const isActive = prof.email === activeUser.email;
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = `dropdown-item d-flex align-items-center justify-content-between py-2 ${isActive ? "active bg-primary-subtle text-primary fw-bold" : ""}`;
+
+                item.innerHTML = `
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="avatar avatar-xs rounded-circle bg-primary-subtle text-primary fw-bold">
+                            ${getInitials(prof.name)}
+                        </span>
+                        <div class="text-start">
+                            <div class="lh-1 text-truncate" style="max-width: 130px;">${escapeHtml(prof.name)}</div>
+                        </div>
+                    </div>
+                    ${isActive ? '<i class="ti ti-check text-primary"></i>' : ''}
+                `;
+
+                item.addEventListener("click", () => switchProfile(prof.email));
+                selectList.appendChild(item);
+            });
+        }
+    } else {
+        // Misafir Kullanıcı Görünümü
+        if (avatar) avatar.innerHTML = `<i class="ti ti-user fs-2"></i>`;
+        if (nameEl) nameEl.textContent = "Misafir Kullanıcı";
+        if (emailEl) emailEl.textContent = "Oturum açılmadı";
+
+        guestMenu?.classList.remove("d-none");
+        loggedInMenu?.classList.add("d-none");
+        logoutMenu?.classList.add("d-none");
+    }
+}
+
+// Profil Değiştir
+function switchProfile(email) {
+    const profiles = getProfiles();
+    const target = profiles.find((p) => p.email === email);
+    if (target) {
+        localStorage.setItem("activeProfile", JSON.stringify(target));
+        updateAuthUI();
+    }
+}
+
+// Kayıt Ol Formu
+document.getElementById("registerForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("regName").value;
+    const email = document.getElementById("regEmail").value;
+
+    const newProfile = { name, email };
+    let profiles = getProfiles();
+
+    if (!profiles.some((p) => p.email === email)) {
+        profiles.push(newProfile);
+        localStorage.setItem("dashboardProfiles", JSON.stringify(profiles));
+    }
+
+    localStorage.setItem("activeProfile", JSON.stringify(newProfile));
+
+    const modalEl = document.getElementById("registerModal");
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.hide();
+
+    updateAuthUI();
+});
+
+// Giriş Yap Formu
+document.getElementById("loginForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value;
+    const nameFromEmail = email.split("@")[0];
+    const formattedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
+
+    const profile = { name: formattedName, email };
+    let profiles = getProfiles();
+
+    if (!profiles.some((p) => p.email === email)) {
+        profiles.push(profile);
+        localStorage.setItem("dashboardProfiles", JSON.stringify(profiles));
+    }
+
+    localStorage.setItem("activeProfile", JSON.stringify(profile));
+
+    const modalEl = document.getElementById("loginModal");
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.hide();
+
+    updateAuthUI();
+});
+
+// Çıkış Yap
+document.getElementById("logoutBtn")?.addEventListener("click", () => {
+    localStorage.removeItem("activeProfile");
+    updateAuthUI();
+});
+
+// ======================================================
+// THEME & SETTINGS IN MODAL
+// ======================================================
+const themeToggleInput = document.getElementById("settingsThemeToggle");
 
 function applyTheme(theme) {
     if (theme === "dark") {
         document.body.setAttribute("data-bs-theme", "dark");
-        themeIcon.className = "ti ti-sun fs-2 text-warning";
+        if (themeToggleInput) themeToggleInput.checked = true;
     } else {
         document.body.removeAttribute("data-bs-theme");
-        themeIcon.className = "ti ti-moon fs-2";
+        if (themeToggleInput) themeToggleInput.checked = false;
     }
 }
 
 const savedTheme = localStorage.getItem("dashboardTheme") || "light";
 applyTheme(savedTheme);
 
-themeButton.addEventListener("click", () => {
-    const currentTheme = document.body.hasAttribute("data-bs-theme") ? "dark" : "light";
-    const newTheme = currentTheme === "dark" ? "light" : "dark";
+themeToggleInput?.addEventListener("change", (e) => {
+    const newTheme = e.target.checked ? "dark" : "light";
     localStorage.setItem("dashboardTheme", newTheme);
     applyTheme(newTheme);
 });
+
+// Ayarları Sıfırla
+document.getElementById("resetDashboardBtn")?.addEventListener("click", () => {
+    if (confirm("Dashboard düzeni ve modül ayarları varsayılana sıfırlansın mı?")) {
+        localStorage.removeItem("dashboardOrder");
+        localStorage.removeItem("dashboardModules");
+        window.location.reload();
+    }
+});
+
+// Uygulama Başlangıç Yüklemesi
+updateAuthUI();
 
 // ======================================================
 // WEATHER API
@@ -459,19 +853,39 @@ function getWeatherDescription(code) {
 
 function updateWeatherIcon(code) {
     const icon = document.querySelector("#weatherIcon");
-    if (!icon) return;
+    const weatherCard = document.querySelector('[data-module-card="weather"] .weather-card-shell');
+
+    if (!icon || !weatherCard) return;
 
     let iconClass = "ti ti-sun";
-    if (code === 0) iconClass = "ti ti-sun text-warning";
-    else if (code === 1 || code === 2) iconClass = "ti ti-cloud-sun text-warning";
-    else if (code === 3) iconClass = "ti ti-cloud text-secondary";
-    else if (code >= 45 && code <= 48) iconClass = "ti ti-cloud-fog text-muted";
-    else if (code >= 51 && code <= 67) iconClass = "ti ti-cloud-rain text-primary";
-    else if (code >= 71 && code <= 77) iconClass = "ti ti-snowflake text-info";
-    else if (code >= 80 && code <= 82) iconClass = "ti ti-cloud-storm text-primary";
-    else if (code >= 95) iconClass = "ti ti-cloud-storm text-danger";
+    let state = "clear";
+    const hour = new Date().getHours();
 
-    icon.className = `${iconClass} fs-1`;
+    if (code === 0) {
+        state = hour >= 19 || hour <= 5 ? "night" : "clear";
+        iconClass = state === "night" ? "ti ti-moon-stars" : "ti ti-sun";
+    } else if (code >= 1 && code <= 3) {
+        state = hour >= 19 || hour <= 5 ? "night" : "cloudy";
+        iconClass = state === "night" ? "ti ti-cloud-moon" : "ti ti-cloud-sun";
+    } else if (code >= 45 && code <= 48) {
+        state = hour >= 19 || hour <= 5 ? "night" : "fog";
+        iconClass = state === "night" ? "ti ti-cloud-moon" : "ti ti-cloud-fog";
+    } else if (code >= 51 && code <= 67) {
+        state = "rain";
+        iconClass = "ti ti-cloud-rain";
+    } else if (code >= 71 && code <= 77) {
+        state = "snow";
+        iconClass = "ti ti-snowflake";
+    } else if (code >= 80 && code <= 82) {
+        state = "rain";
+        iconClass = "ti ti-cloud-rain";
+    } else if (code >= 95) {
+        state = "storm";
+        iconClass = "ti ti-cloud-storm";
+    }
+
+    weatherCard.dataset.weatherState = state;
+    icon.className = iconClass;
 }
 
 function formatWeatherTime(time) {
@@ -720,10 +1134,6 @@ async function loadGold() {
 let allNews = [];
 let selectedNewsSource = "all";
 
-const FALLBACK_NEWS = [
-    { title: "TCMB faiz kararına odaklandı", description: "Piyasalarda haftanın odağı Merkez Bankası toplantısı oldu.", source: "Ekonomi", url: "#" },
-    { title: "BIST günü artı bölgede kapattı", description: "Borsa İstanbul alıcılı seyirle kapanış yaptı.", source: "Borsa", url: "#" }
-];
 
 async function loadNews() {
     const newsList = document.querySelector("#newsList");
@@ -736,15 +1146,15 @@ async function loadNews() {
         if (!response.ok) throw new Error("API Hatası");
 
         const data = await response.json();
-        allNews = Array.isArray(data.articles) && data.articles.length ? data.articles : FALLBACK_NEWS;
+        allNews = Array.isArray(data.articles) ? data.articles : [];
 
         document.querySelector("#newsUpdated").textContent = `Son güncelleme: ${new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`;
         buildNewsSourceFilters();
         renderNews();
     } catch (error) {
         console.error("Haber hatası:", error);
-        allNews = FALLBACK_NEWS;
-        document.querySelector("#newsUpdated").textContent = "Yedek içerik gösteriliyor";
+        allNews = [];
+        document.querySelector("#newsUpdated").textContent = "Haberler yüklenemedi";
         buildNewsSourceFilters();
         renderNews();
     }
@@ -825,9 +1235,252 @@ document.querySelector("#refreshNews")?.addEventListener("click", async () => {
     btn.disabled = false;
 });
 
+// ======================================================
+// CRYPTO
+// ======================================================
+
+async function loadCrypto() {
+
+    const btcElement =
+        document.getElementById("crypto-BTC");
+
+    const ethElement =
+        document.getElementById("crypto-ETH");
+
+
+    try {
+
+        // ==============================================
+        // BITCOIN
+        // ==============================================
+
+        const btcResponse = await fetch(
+            `${API_URL}/api/crypto/BTC`
+        );
+
+
+        if (!btcResponse.ok) {
+
+            throw new Error(
+                `Bitcoin API: ${btcResponse.status}`
+            );
+
+        }
+
+
+        const btc = await btcResponse.json();
+
+
+        console.log(
+            "₿ Bitcoin:",
+            btc
+        );
+
+
+        // ==============================================
+        // ETHEREUM
+        // ==============================================
+
+        const ethResponse = await fetch(
+            `${API_URL}/api/crypto/ETH`
+        );
+
+
+        if (!ethResponse.ok) {
+
+            throw new Error(
+                `Ethereum API: ${ethResponse.status}`
+            );
+
+        }
+
+
+        const eth = await ethResponse.json();
+
+
+        console.log(
+            "Ξ Ethereum:",
+            eth
+        );
+
+
+        // ==============================================
+        // BITCOIN HTML
+        // ==============================================
+
+        if (btcElement) {
+
+            btcElement.innerHTML =
+                createCryptoPrice(
+                    btc
+                );
+
+        }
+
+
+        // ==============================================
+        // ETHEREUM HTML
+        // ==============================================
+
+        if (ethElement) {
+
+            ethElement.innerHTML =
+                createCryptoPrice(
+                    eth
+                );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Crypto Error:",
+            error
+        );
+
+
+        if (btcElement) {
+
+            btcElement.innerHTML = `
+
+                <span class="text-danger small">
+
+                    <i class="ti ti-alert-circle"></i>
+
+                    Veri alınamadı
+
+                </span>
+
+            `;
+
+        }
+
+
+        if (ethElement) {
+
+            ethElement.innerHTML = `
+
+                <span class="text-danger small">
+
+                    <i class="ti ti-alert-circle"></i>
+
+                    Veri alınamadı
+
+                </span>
+
+            `;
+
+        }
+
+    }
+
+}
+
+// ======================================================
+// CRYPTO PRICE HTML
+// ======================================================
+
+function createCryptoPrice(data) {
+
+    const price =
+        Number(
+            data.close
+        );
+
+
+    const change =
+        Number(
+            data.percent_change
+        );
+
+
+    const isPositive =
+        change >= 0;
+
+
+    const badgeClass =
+        isPositive
+            ? "bg-green-lt"
+            : "bg-red-lt";
+
+
+    const sign =
+        isPositive
+            ? "+"
+            : "";
+
+
+    return `
+
+        <strong class="d-block">
+
+            $${price.toLocaleString(
+                "en-US",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            )}
+
+        </strong>
+
+
+        <span
+            class="badge ${badgeClass}"
+        >
+
+            ${sign}${change.toFixed(2)}%
+
+        </span>
+
+    `;
+
+}
+// ======================================================
+// DRAG & DROP SYSTEM (SORTABLEJS)
+// ======================================================
+function initDragAndDrop() {
+    const gridContainer = document.querySelector(".row-cards");
+    if (!gridContainer) return;
+
+    Sortable.create(gridContainer, {
+        animation: 150, // Yer değiştirme animasyonu hızı (ms)
+        handle: ".card-header, .weather-card-shell", // Sadece başlıktan tutarak sürükleme
+        ghostClass: "sortable-ghost", // Sürüklenirken kartın arkasında kalan hayalet stil
+        dragClass: "sortable-drag",   // Sürüklenen öğenin stili
+        onEnd: function () {
+            // Yeni sıralamayı localStorage'a kaydetmek için:
+            const order = Array.from(gridContainer.children).map(
+                (card) => card.dataset.moduleCard
+            );
+            localStorage.setItem("dashboardOrder", JSON.stringify(order));
+        }
+    });
+
+    // Kaydedilmiş sıralamayı geri yükleme
+    restoreCardOrder(gridContainer);
+}
+
+function restoreCardOrder(container) {
+    const savedOrder = JSON.parse(localStorage.getItem("dashboardOrder"));
+    if (!savedOrder) return;
+
+    savedOrder.forEach((moduleName) => {
+        const card = container.querySelector(`[data-module-card="${moduleName}"]`);
+        if (card) {
+            container.appendChild(card); // Kaydedilen sıraya göre kartları diz
+        }
+    });
+}
+
+
+
 // INITIALIZATIONS
+initDragAndDrop();
 initializeWeather();
 loadCurrencyRates();
 loadStocks();
 loadGold();
 loadNews();
+loadCrypto();

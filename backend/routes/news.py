@@ -1,145 +1,68 @@
 from fastapi import APIRouter, HTTPException
-import feedparser
-import asyncio
+from pathlib import Path
+import httpx
+import os
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 router = APIRouter(
     prefix="/api/news",
     tags=["News"]
 )
 
-
-RSS_SOURCES = [
-    {
-        "name": "TRT Haber",
-        "url": "https://www.trthaber.com/sondakika_articles.rss"
-    },
-
-    {
-        "name": "Haber Global",
-        "url": "https://haberglobal.com.tr/rss"
-    },
-
-    {
-        "name": "Google News",
-        "url": "https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr"
-    }
-]
-
-
-async def fetch_rss(source):
-
-    def parse_feed():
-
-        return feedparser.parse(
-            source["url"]
-        )
-
-    feed = await asyncio.to_thread(
-        parse_feed
-    )
-
-    articles = []
-
-    for entry in feed.entries[:15]:
-
-        # Google News'te source bilgisi
-        # farklı bir yapıda gelebilir.
-        source_name = source["name"]
-
-        if source["name"] == "Google News":
-
-            source_data = entry.get(
-                "source"
-            )
-
-            if source_data:
-
-                source_name = source_data.get(
-                    "title",
-                    "Google News"
-                )
-
-
-        articles.append({
-
-            "title": entry.get(
-                "title",
-                ""
-            ),
-
-            "description": entry.get(
-                "description",
-                ""
-            ),
-
-            "url": entry.get(
-                "link",
-                ""
-            ),
-
-            "published_at": entry.get(
-                "published",
-                entry.get(
-                    "pubDate",
-                    ""
-                )
-            ),
-
-            "source": source_name
-
-        })
-
-    return articles
+GNEWS_API_KEY = os.getenv("GNEWS_API_KEY", "")
+GNEWS_URL = "https://gnews.io/api/v4/top-headlines"
 
 
 @router.get("")
 async def get_news():
-
-    try:
-
-        results = await asyncio.gather(
-            *[
-                fetch_rss(source)
-                for source in RSS_SOURCES
-            ],
-            return_exceptions=True
+    if not GNEWS_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="GNEWS_API_KEY tanımlanmamış. .env dosyasına ekleyin."
         )
 
+    params = {
+        "category": "general",
+        "lang": "tr",
+        "country": "tr",
+        "max": 15,
+        "apikey": GNEWS_API_KEY,
+    }
+
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=15) as client:
+            response = await client.get(GNEWS_URL, params=params)
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"GNews API hatası: {response.text[:200]}"
+            )
+
+        data = response.json()
+        raw_articles = data.get("articles", [])
+
         articles = []
-
-
-        for result in results:
-
-            if isinstance(
-                result,
-                Exception
-            ):
-
-                print(
-                    "RSS kaynağı hatası:",
-                    result
-                )
-
-                continue
-
-
-            articles.extend(result)
-
+        for item in raw_articles:
+            articles.append({
+                "title": item.get("title", ""),
+                "description": item.get("description", ""),
+                "url": item.get("url", ""),
+                "image": item.get("image", ""),
+                "source": item.get("source", {}).get("name", "Bilinmiyor"),
+                "published_at": item.get("publishedAt", ""),
+            })
 
         return {
             "total": len(articles),
-            "articles": articles
+            "articles": articles,
         }
 
-
-    except Exception as error:
-
-        print(
-            "News API Error:",
-            error
-        )
-
+    except httpx.HTTPError as e:
+        print("GNews API bağlantı hatası:", e)
         raise HTTPException(
             status_code=502,
-            detail="Haber kaynaklarına ulaşılamadı."
+            detail="Haber API'sine ulaşılamadı."
         )

@@ -81,3 +81,7 @@ class TwelveDataService:
         return await self.quote(
             "XAU/USD"
         )
+
+    async def crypto(self, symbol: str):
+
+        return await self.quote(symbol)
