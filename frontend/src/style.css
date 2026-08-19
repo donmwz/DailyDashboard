@@ -417,3 +417,67 @@
 #userDropdownMenu.show {
     display: block;
 }
+
+.settings-section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tblr-secondary);
+    margin: 0 0 0.4rem;
+}
+
+.settings-box,
+.settings-data {
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 0.4rem;
+    margin-bottom: 0.95rem;
+}
+
+.settings-theme {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.85rem;
+    cursor: pointer;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.45rem 0.75rem;
+    padding: 0.7rem 0.85rem;
+}
+
+.settings-data {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    overflow: hidden;
+}
+
+.settings-data-col {
+    padding: 0.7rem 0.85rem;
+}
+
+.settings-data-col + .settings-data-col {
+    border-left: 1px solid var(--tblr-border-color);
+}
+
+.settings-data-head {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.settings-grid .form-check,
+.settings-data-col .form-check {
+    min-height: 1.35rem;
+    margin-bottom: 0.15rem;
+}
+
+.settings-grid .form-check-label,
+.settings-data-col .form-check-label {
+    font-size: 0.8125rem;
+}
+
+#settingsModal .modal-footer {
+    justify-content: space-between;
+}

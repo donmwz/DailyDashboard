@@ -235,104 +235,17 @@ document.querySelector("#app").innerHTML = `
                         </div>
 
 
-                        <div
-                            class="list-group list-group-flush"
-                            id="cryptoList"
-                        >
-
-                            <!-- Bitcoin -->
-
-                            <div class="list-group-item py-3">
-
-                                <div class="row align-items-center">
-
-                                    <div class="col-auto">
-
-                                        <span
-                                            class="avatar bg-orange-lt rounded-circle"
-                                        >
-                                            ₿
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="col">
-
-                                        <strong class="d-block">
-                                            Bitcoin
-                                        </strong>
-
-                                        <span class="text-secondary small">
-                                            BTC
-                                        </span>
-
-                                    </div>
-
-
-                                    <div
-                                        class="col-auto text-end"
-                                        id="crypto-BTC"
-                                    >
-
-                                        <div class="spinner-border spinner-border-sm"></div>
-
-                                    </div>
-
-                                </div>
-
+                        <div class="list-group list-group-flush" id="cryptoList">
+                            <div class="list-group-item text-center py-4 text-secondary">
+                                <div class="spinner-border spinner-border-sm me-2"></div>
+                                Kripto verileri yükleniyor...
                             </div>
-
-
-                            <!-- Ethereum -->
-
-                            <div class="list-group-item py-3">
-
-                                <div class="row align-items-center">
-
-                                    <div class="col-auto">
-
-                                        <span
-                                            class="avatar bg-blue-lt rounded-circle"
-                                        >
-                                            Ξ
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="col">
-
-                                        <strong class="d-block">
-                                            Ethereum
-                                        </strong>
-
-                                        <span class="text-secondary small">
-                                            ETH
-                                        </span>
-
-                                    </div>
-
-
-                                    <div
-                                        class="col-auto text-end"
-                                        id="crypto-ETH"
-                                    >
-
-                                        <div class="spinner-border spinner-border-sm"></div>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
                         </div>
 
                     </div>
 
                 </div>
-                <!-- STOCKS MODULE -->
+<!-- STOCKS MODULE -->
                 <div class="col-lg-5 col-md-12 module-card" data-module-card="stocks">
                     <div class="card card-hover shadow-sm h-100 border-0">
                         <div class="card-header bg-transparent border-bottom-0 pb-0">
@@ -474,60 +387,35 @@ document.querySelector("#app").innerHTML = `
 
 <!-- AYARLAR VE ÖZELLEŞTİRMELER MODAL -->
 <div class="modal modal-blur fade" id="settingsModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">
-                    <i class="ti ti-settings me-2"></i>Ayarlar & Özelleştirme
-                </h5>
+                <h5 class="modal-title">Ayarlar</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <h6 class="fw-bold mb-3">Görünüm</h6>
-                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-body-tertiary rounded-3">
-                    <div>
-                        <strong class="d-block">Koyu Tema (Dark Mode)</strong>
-                        <span class="text-secondary small">Arayüzü karanlık moda geçir.</span>
-                    </div>
-                    <div class="form-check form-switch m-0">
-                        <input class="form-check-input" type="checkbox" id="settingsThemeToggle">
-                    </div>
+                <div class="settings-section-label">Görünüm</div>
+                <label class="settings-box settings-theme">
+                    <span>Koyu tema</span>
+                    <input class="form-check-input m-0" type="checkbox" id="settingsThemeToggle">
+                </label>
+
+                <div class="settings-section-label">Kartlar</div>
+                <div class="settings-box settings-grid" id="moduleSelector">
+                    <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="weather"> <span class="form-check-label">Hava</span></label>
+                    <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="currency"> <span class="form-check-label">Döviz</span></label>
+                    <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="gold"> <span class="form-check-label">Altın</span></label>
+                    <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="crypto"> <span class="form-check-label">Kripto</span></label>
+                    <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="stocks"> <span class="form-check-label">Borsa</span></label>
+                    <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="news"> <span class="form-check-label">Haberler</span></label>
                 </div>
 
-                <h6 class="fw-bold mb-3">Sınıflandırma</h6>
-                 <!-- MODULE SELECTOR BAR -->
-            <div class="card mb-4 border-0 shadow-sm">
-                <div class="card-body py-2 px-3">
-                    <div class="d-flex flex-wrap gap-2 align-items-center" id="moduleSelector">
-                        <span class="text-secondary small fw-semibold me-2 d-none d-sm-inline">
-                            <i class="ti ti-adjustments me-1"></i> Modüller:
-                        </span>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="weather">
-                            <i class="ti ti-cloud me-1"></i> Hava
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="currency">
-                            <i class="ti ti-currency-dollar me-1"></i> Döviz
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="gold">
-                            <i class="ti ti-coins me-1"></i> Altın
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="crypto">
-                            <i class="ti ti-brand-bitcoin me-1"></i> Kripto
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="stocks">
-                            <i class="ti ti-chart-line me-1"></i> Borsa
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="news">
-                            <i class="ti ti-news me-1"></i> Haberler
-                        </button>
-                    </div>
-                </div>
+                <div class="settings-section-label">Veriler</div>
+                <div id="classificationLists" class="settings-data"></div>
             </div>
-
-                <h6 class="fw-bold mb-3">Sıfırlama</h6>
-                <button class="btn btn-outline-danger btn-sm w-100" id="resetDashboardBtn">
-                    <i class="ti ti-refresh me-1"></i> Dashboard Sıralamasını Ve Ayarlarını Sıfırla
-                </button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link text-danger px-0 me-auto" id="resetDashboardBtn">Varsayılana sıfırla</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tamam</button>
             </div>
         </div>
     </div>
@@ -549,40 +437,129 @@ updateDate();
 // ======================================================
 // MODULE SYSTEM
 // ======================================================
-const moduleButtons = document.querySelectorAll(".module-btn");
+const moduleToggles = document.querySelectorAll(".module-toggle");
 const savedModules = JSON.parse(localStorage.getItem("dashboardModules"));
 const activeModules = savedModules || ["weather", "currency", "gold", "crypto", "stocks", "news"];
 
-moduleButtons.forEach((button) => {
-    const moduleName = button.dataset.module;
+function saveVisibleModules() {
+    const currentModules = [];
+    moduleToggles.forEach((input) => {
+        if (input.checked) currentModules.push(input.dataset.module);
+    });
+    localStorage.setItem("dashboardModules", JSON.stringify(currentModules));
+}
+
+moduleToggles.forEach((input) => {
+    const moduleName = input.dataset.module;
     const card = document.querySelector(`[data-module-card="${moduleName}"]`);
     const isActive = activeModules.includes(moduleName);
+    input.checked = isActive;
+    card?.classList.toggle("d-none", !isActive);
 
-    if (isActive) {
-        button.classList.add("active");
-        card?.classList.remove("d-none");
-    } else {
-        button.classList.remove("active");
-        card?.classList.add("d-none");
-    }
+    input.addEventListener("change", () => {
+        const target = document.querySelector(`[data-module-card="${moduleName}"]`);
+        target?.classList.toggle("d-none", !input.checked);
+        saveVisibleModules();
+    });
 });
 
-moduleButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-        const moduleName = button.dataset.module;
-        const card = document.querySelector(`[data-module-card="${moduleName}"]`);
 
-        button.classList.toggle("active");
-        card?.classList.toggle("d-none");
+// ======================================================
+// DATA CLASSIFICATIONS (user-selected series)
+// ======================================================
+const DATA_CATALOG = {
+    gold: [
+        { id: "GA", label: "Gram Altın" },
+        { id: "C", label: "Çeyrek Altın" },
+        { id: "Y", label: "Yarım Altın" },
+        { id: "T", label: "Tam Altın" },
+        { id: "CMR", label: "Cumhuriyet Altını" },
+        { id: "XAUUSD", label: "Ons Altın" }
+    ],
+    crypto: [
+        { id: "BTC", label: "Bitcoin", icon: "₿", color: "bg-orange-lt" },
+        { id: "ETH", label: "Ethereum", icon: "Ξ", color: "bg-blue-lt" },
+        { id: "SOL", label: "Solana", icon: "S", color: "bg-purple-lt" },
+        { id: "XRP", label: "Ripple", icon: "X", color: "bg-azure-lt" },
+        { id: "DOGE", label: "Dogecoin", icon: "D", color: "bg-yellow-lt" }
+    ],
+    stocks: [
+        { id: "THYAO", label: "Türk Hava Yolları" },
+        { id: "ASELS", label: "Aselsan" },
+        { id: "AAPL", label: "Apple" },
+        { id: "IBM", label: "IBM" },
+        { id: "MSFT", label: "Microsoft" }
+    ]
+};
 
-        const currentModules = [];
-        moduleButtons.forEach((btn) => {
-            if (btn.classList.contains("active")) {
-                currentModules.push(btn.dataset.module);
-            }
-        });
-        localStorage.setItem("dashboardModules", JSON.stringify(currentModules));
+const DEFAULT_DATA_PREFS = {
+    gold: ["GA", "C", "Y", "T"],
+    crypto: ["BTC", "ETH"],
+    stocks: ["THYAO", "AAPL", "IBM"]
+};
+
+function getDataPrefs() {
+    let saved = null;
+    try {
+        saved = JSON.parse(localStorage.getItem("dashboardDataPrefs"));
+    } catch {
+        saved = null;
+    }
+    if (!saved || typeof saved !== "object") {
+        return {
+            gold: [...DEFAULT_DATA_PREFS.gold],
+            crypto: [...DEFAULT_DATA_PREFS.crypto],
+            stocks: [...DEFAULT_DATA_PREFS.stocks]
+        };
+    }
+    return {
+        gold: Array.isArray(saved.gold) ? saved.gold : [...DEFAULT_DATA_PREFS.gold],
+        crypto: Array.isArray(saved.crypto) ? saved.crypto : [...DEFAULT_DATA_PREFS.crypto],
+        stocks: Array.isArray(saved.stocks) ? saved.stocks : [...DEFAULT_DATA_PREFS.stocks]
+    };
+}
+
+function saveDataPrefs(prefs) {
+    localStorage.setItem("dashboardDataPrefs", JSON.stringify(prefs));
+}
+
+function renderClassificationSettings() {
+    const root = document.getElementById("classificationLists");
+    if (!root) return;
+    const prefs = getDataPrefs();
+    const groups = [
+        { key: "gold", title: "Altın" },
+        { key: "crypto", title: "Kripto" },
+        { key: "stocks", title: "Borsa" }
+    ];
+
+    root.innerHTML = groups.map((group) => {
+        const items = DATA_CATALOG[group.key].map((item) => {
+            const checked = prefs[group.key].includes(item.id) ? "checked" : "";
+            return `<label class="form-check">
+                <input type="checkbox" class="form-check-input data-pref-check" data-group="${group.key}" value="${item.id}" ${checked}>
+                <span class="form-check-label">${item.label}</span>
+            </label>`;
+        }).join("");
+        return `<div class="settings-data-col"><div class="settings-data-head">${group.title}</div>${items}</div>`;
+    }).join("");
+}
+
+function applyDataPrefChange() {
+    const prefs = { gold: [], crypto: [], stocks: [] };
+    document.querySelectorAll(".data-pref-check").forEach((input) => {
+        if (input.checked) prefs[input.dataset.group].push(input.value);
     });
+    saveDataPrefs(prefs);
+    loadGold();
+    loadStocks();
+    loadCrypto();
+}
+
+document.getElementById("classificationLists")?.addEventListener("change", (event) => {
+    if (event.target.classList.contains("data-pref-check")) {
+        applyDataPrefChange();
+    }
 });
 
 // ======================================================
@@ -881,6 +858,7 @@ document.getElementById("resetDashboardBtn")?.addEventListener("click", () => {
     if (confirm("Dashboard düzeni ve modül ayarları varsayılana sıfırlansın mı?")) {
         localStorage.removeItem("dashboardOrder");
         localStorage.removeItem("dashboardModules");
+        localStorage.removeItem("dashboardDataPrefs");
         window.location.reload();
     }
 });
@@ -1067,7 +1045,12 @@ async function loadStocks() {
     const stockList = document.getElementById("stockList");
     if (!stockList) return;
 
-    const symbols = ["IBM", "AAPL", "ASELS"];
+    const prefs = getDataPrefs();
+    const symbols = prefs.stocks.length ? prefs.stocks : DEFAULT_DATA_PREFS.stocks;
+    if (!symbols.length) {
+        stockList.innerHTML = `<div class="text-secondary text-center py-3">Ayarlar &gt; Sınıflandırmalar bölümünden hisse seç.</div>`;
+        return;
+    }
 
     try {
         const responses = await Promise.allSettled(
@@ -1177,7 +1160,14 @@ async function loadGold() {
             T: "Tam Altın", CMR: "Cumhuriyet Altını", XAUUSD: "Ons Altın"
         };
 
-        Object.entries(goldData).forEach(([symbol, item]) => {
+        const selectedGold = getDataPrefs().gold;
+        const entries = Object.entries(goldData).filter(([symbol]) => selectedGold.includes(symbol));
+        if (!entries.length) {
+            tableBody.innerHTML = `<tr><td colspan="3" class="text-center text-secondary py-4">Ayarlar &gt; Sınıflandırmalar bölümünden altın türü seç.</td></tr>`;
+            return;
+        }
+
+        entries.forEach(([symbol, item]) => {
             const name = goldNames[symbol] || symbol;
             const currency = item.kur === "USD" ? "$" : "₺";
             const alis = Number(item.alis).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1329,141 +1319,48 @@ document.querySelector("#refreshNews")?.addEventListener("click", async () => {
 // ======================================================
 
 async function loadCrypto() {
+    const cryptoList = document.getElementById("cryptoList");
+    if (!cryptoList) return;
 
-    const btcElement =
-        document.getElementById("crypto-BTC");
+    const selected = getDataPrefs().crypto;
+    const items = DATA_CATALOG.crypto.filter((item) => selected.includes(item.id));
 
-    const ethElement =
-        document.getElementById("crypto-ETH");
-
-
-    try {
-
-        // ==============================================
-        // BITCOIN
-        // ==============================================
-
-        const btcResponse = await fetch(
-            `${API_URL}/api/crypto/BTC`
-        );
-
-
-        if (!btcResponse.ok) {
-
-            throw new Error(
-                `Bitcoin API: ${btcResponse.status}`
-            );
-
-        }
-
-
-        const btc = await btcResponse.json();
-
-
-        console.log(
-            "₿ Bitcoin:",
-            btc
-        );
-
-
-        // ==============================================
-        // ETHEREUM
-        // ==============================================
-
-        const ethResponse = await fetch(
-            `${API_URL}/api/crypto/ETH`
-        );
-
-
-        if (!ethResponse.ok) {
-
-            throw new Error(
-                `Ethereum API: ${ethResponse.status}`
-            );
-
-        }
-
-
-        const eth = await ethResponse.json();
-
-
-        console.log(
-            "Ξ Ethereum:",
-            eth
-        );
-
-
-        // ==============================================
-        // BITCOIN HTML
-        // ==============================================
-
-        if (btcElement) {
-
-            btcElement.innerHTML =
-                createCryptoPrice(
-                    btc
-                );
-
-        }
-
-
-        // ==============================================
-        // ETHEREUM HTML
-        // ==============================================
-
-        if (ethElement) {
-
-            ethElement.innerHTML =
-                createCryptoPrice(
-                    eth
-                );
-
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "Crypto Error:",
-            error
-        );
-
-
-        if (btcElement) {
-
-            btcElement.innerHTML = `
-
-                <span class="text-danger small">
-
-                    <i class="ti ti-alert-circle"></i>
-
-                    Veri alınamadı
-
-                </span>
-
-            `;
-
-        }
-
-
-        if (ethElement) {
-
-            ethElement.innerHTML = `
-
-                <span class="text-danger small">
-
-                    <i class="ti ti-alert-circle"></i>
-
-                    Veri alınamadı
-
-                </span>
-
-            `;
-
-        }
-
+    if (!items.length) {
+        cryptoList.innerHTML = `<div class="list-group-item text-center py-4 text-secondary">Ayarlar &gt; Sınıflandırmalar bölümünden kripto seç.</div>`;
+        return;
     }
 
+    cryptoList.innerHTML = items.map((item) => `
+        <div class="list-group-item py-3">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <span class="avatar ${item.color} rounded-circle">${item.icon}</span>
+                </div>
+                <div class="col">
+                    <strong class="d-block">${item.label}</strong>
+                    <span class="text-secondary small">${item.id}</span>
+                </div>
+                <div class="col-auto text-end" id="crypto-${item.id}">
+                    <div class="spinner-border spinner-border-sm"></div>
+                </div>
+            </div>
+        </div>
+    `).join("");
+
+    await Promise.all(items.map(async (item) => {
+        const target = document.getElementById(`crypto-${item.id}`);
+        try {
+            const response = await fetch(`${API_URL}/api/crypto/${item.id}`);
+            if (!response.ok) throw new Error(`${item.id} ${response.status}`);
+            const data = await response.json();
+            if (target) target.innerHTML = createCryptoPrice(data);
+        } catch (error) {
+            console.error("Crypto Error:", error);
+            if (target) {
+                target.innerHTML = `<span class="text-danger small">Veri alınamadı</span>`;
+            }
+        }
+    }));
 }
 
 // ======================================================
@@ -1566,6 +1463,7 @@ function restoreCardOrder(container) {
 
 
 // INITIALIZATIONS
+renderClassificationSettings();
 initDragAndDrop();
 initializeWeather();
 loadCurrencyRates();
