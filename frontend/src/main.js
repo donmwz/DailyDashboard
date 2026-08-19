@@ -1,8 +1,8 @@
 import "@tabler/core/dist/css/tabler.min.css";
-import "@tabler/core/dist/js/tabler.min.js";
 import "./style.css";
 import * as bootstrap from "bootstrap";
 import Sortable from "sortablejs";
+import { supabase } from "./lib/supabase";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -13,73 +13,46 @@ const API_URL = "http://127.0.0.1:8000";
 document.querySelector("#app").innerHTML = `
 <div class="page">
     <!-- NAVBAR -->
-        <header class="navbar navbar-expand-md navbar-light d-print-none sticky-top border-bottom bg-surface shadow-sm">
-        <div class="container-xl">
-            <a href="#" class="navbar-brand d-flex align-items-center gap-2">
+        <header class="navbar d-print-none sticky-top border-bottom bg-surface shadow-sm">
+        <div class="container-xl d-flex align-items-center justify-content-between gap-3 py-2">
+            <a href="#" class="navbar-brand d-flex align-items-center gap-2 m-0">
                 <div class="p-2 bg-primary-subtle text-primary rounded-2 d-flex align-items-center justify-content-center">
                     <i class="ti ti-layout-dashboard fs-2"></i>
                 </div>
                 <div>
-                    <span class="fw-bold fs-3 tracking-tight d-block lh-1">Daily</span>
-                    <span class="fs-6 text-secondary fw-normal">Dashboard</span>
+                    <span class="fw-bold fs-3 tracking-tight d-block lh-1">Günlük Özet</span>
+                    <span class="fs-6 text-secondary fw-normal">2026</span>
                 </div>
             </a>
 
-            <!-- SAĞ ÜST KULLANICI PROFİL LOGOSU VE MENÜSÜ -->
-            <div class="navbar-nav flex-row order-md-last align-items-center gap-2">
-                <div class="nav-item dropdown">
-                    <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Kullanıcı Menüsü">
-                        <!-- Kullanıcı Profil Logosu / Avatarı -->
-                        <span class="avatar avatar-md bg-primary text-white fw-bold rounded-circle shadow-sm" id="navUserAvatar">
-                            <i class="ti ti-user fs-2"></i>
-                        </span>
-                    </a>
-
-                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow shadow-lg" style="min-width: 260px;">
-                        
-                        <!-- AKTİF KULLANICI BİLGİSİ -->
-                        <div class="px-3 py-2 border-bottom bg-body-tertiary rounded-top" id="activeUserHeaderInfo">
-                            <div class="fw-bold text-truncate" id="navUserName">Misafir Kullanıcı</div>
-                            <div class="small text-secondary text-truncate" id="navUserEmail">Oturum açılmadı</div>
-                        </div>
-
-                        <!-- GİRİŞ YAPILMAMIŞSA GÖSTERİLECEK ALAN -->
-                        <div id="guestActionMenu">
-                            <button class="dropdown-item py-2 text-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                <i class="ti ti-login me-2"></i> Giriş Yap
-                            </button>
-                            <button class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#registerModal">
-                                <i class="ti ti-user-plus me-2"></i> Kayıt Ol
-                            </button>
-                        </div>
-
-                        <!-- GİRİŞ YAPILMIŞSA GÖSTERİLECEK PROFİL SEÇİM LİSTESİ -->
-                        <div id="loggedInActionMenu" class="d-none">
-                            <div class="dropdown-header fw-bold text-uppercase small text-secondary mt-2">Profili Değiştir</div>
-                            <div id="profileSelectList" class="my-1">
-                                <!-- Kayıtlı profiller dinamik yüklenecek -->
-                            </div>
-                            <a href="#" class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#registerModal">
-                                <i class="ti ti-user-plus me-2"></i> Yeni Profil Ekle
-                            </a>
-                            <div class="dropdown-divider my-1"></div>
-                        </div>
-
-                        <div class="dropdown-divider my-1"></div>
-
-                        <!-- AYARLAR & ÖZELLEŞTİRMELER MODÜLÜ -->
-                        <div class="dropdown-header fw-bold text-uppercase small text-secondary">Tercihler</div>
-                        <button class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                            <i class="ti ti-settings me-2 text-secondary"></i> Ayarlar & Özelleştirme
+            <div class="user-menu position-relative flex-shrink-0">
+                <button type="button" class="user-menu-btn" id="userMenuButton" aria-expanded="false" aria-label="Kullanıcı menüsü">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path>
+                        <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>
+                    </svg>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg" id="userDropdownMenu">
+                    <div class="px-3 py-2 border-bottom d-none" id="activeUserHeaderInfo">
+                        <div class="fw-bold text-truncate" id="navUserName"></div>
+                        <div class="small text-secondary text-truncate" id="navUserEmail"></div>
+                    </div>
+                    <div id="guestActionMenu">
+                        <button type="button" class="dropdown-item py-2" id="openLoginBtn">
+                            Giriş Yap
                         </button>
-
-                        <!-- ÇIKIŞ BUTONU -->
-                        <div id="logoutActionMenu" class="d-none">
-                            <div class="dropdown-divider my-1"></div>
-                            <button class="dropdown-item py-2 text-danger" id="logoutBtn">
-                                <i class="ti ti-logout me-2"></i> Oturumu Kapat
-                            </button>
-                        </div>
+                        <button type="button" class="dropdown-item py-2" id="openRegisterBtn">
+                            Kayıt Ol
+                        </button>
+                    </div>
+                    <button type="button" class="dropdown-item py-2" id="openSettingsBtn">
+                        Ayarlar
+                    </button>
+                    <div id="logoutActionMenu" class="d-none">
+                        <div class="dropdown-divider my-1"></div>
+                        <button type="button" class="dropdown-item py-2 text-danger" id="logoutBtn">
+                            Çıkış Yap
+                        </button>
                     </div>
                 </div>
             </div>
@@ -95,7 +68,7 @@ document.querySelector("#app").innerHTML = `
                 <div class="row align-items-center">
                     <div class="col">
                         <h2 class="page-title fs-1 fw-bold">
-                            Günaydın 👋
+                            Hoş Geldin :<span id="welcomeUserName"></span>
                         </h2>
                         <div class="text-secondary mt-1">
                             Güncel finans, hava ve haber verileri tek ekranda.
@@ -109,34 +82,7 @@ document.querySelector("#app").innerHTML = `
                 </div>
             </div>
 
-            <!-- MODULE SELECTOR BAR -->
-            <div class="card mb-4 border-0 shadow-sm">
-                <div class="card-body py-2 px-3">
-                    <div class="d-flex flex-wrap gap-2 align-items-center" id="moduleSelector">
-                        <span class="text-secondary small fw-semibold me-2 d-none d-sm-inline">
-                            <i class="ti ti-adjustments me-1"></i> Modüller:
-                        </span>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="weather">
-                            <i class="ti ti-cloud me-1"></i> Hava
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="currency">
-                            <i class="ti ti-currency-dollar me-1"></i> Döviz
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="gold">
-                            <i class="ti ti-coins me-1"></i> Altın
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="crypto">
-                            <i class="ti ti-brand-bitcoin me-1"></i> Kripto
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="stocks">
-                            <i class="ti ti-chart-line me-1"></i> Borsa
-                        </button>
-                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="news">
-                            <i class="ti ti-news me-1"></i> Haberler
-                        </button>
-                    </div>
-                </div>
-            </div>
+           
 
             <!-- DASHBOARD GRID -->
             <div class="row row-cards g-3">
@@ -500,7 +446,7 @@ document.querySelector("#app").innerHTML = `
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content shadow">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Kayıt Ol / Yeni Profil</h5>
+                <h5 class="modal-title fw-bold">Kayıt Ol</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="registerForm">
@@ -519,7 +465,7 @@ document.querySelector("#app").innerHTML = `
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary w-100">Profil Oluştur ve Geçiş Yap</button>
+                    <button type="submit" class="btn btn-primary w-100">Kayıt Ol</button>
                 </div>
             </form>
         </div>
@@ -547,6 +493,36 @@ document.querySelector("#app").innerHTML = `
                         <input class="form-check-input" type="checkbox" id="settingsThemeToggle">
                     </div>
                 </div>
+
+                <h6 class="fw-bold mb-3">Sınıflandırma</h6>
+                 <!-- MODULE SELECTOR BAR -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex flex-wrap gap-2 align-items-center" id="moduleSelector">
+                        <span class="text-secondary small fw-semibold me-2 d-none d-sm-inline">
+                            <i class="ti ti-adjustments me-1"></i> Modüller:
+                        </span>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="weather">
+                            <i class="ti ti-cloud me-1"></i> Hava
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="currency">
+                            <i class="ti ti-currency-dollar me-1"></i> Döviz
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="gold">
+                            <i class="ti ti-coins me-1"></i> Altın
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="crypto">
+                            <i class="ti ti-brand-bitcoin me-1"></i> Kripto
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="stocks">
+                            <i class="ti ti-chart-line me-1"></i> Borsa
+                        </button>
+                        <button class="btn btn-sm btn-subtle-primary module-btn active" data-module="news">
+                            <i class="ti ti-news me-1"></i> Haberler
+                        </button>
+                    </div>
+                </div>
+            </div>
 
                 <h6 class="fw-bold mb-3">Sıfırlama</h6>
                 <button class="btn btn-outline-danger btn-sm w-100" id="resetDashboardBtn">
@@ -610,159 +586,272 @@ moduleButtons.forEach((button) => {
 });
 
 // ======================================================
-// USER PROFILE & SETTINGS SYSTEM
+// USER PROFILE & SETTINGS SYSTEM - SUPABASE
 // ======================================================
 
-function getProfiles() {
-    return safeJsonParse(localStorage.getItem("dashboardProfiles"), []);
-}
+// ======================================================
+// GET ACTIVE USER
+// ======================================================
 
-function getActiveProfile() {
-    return safeJsonParse(localStorage.getItem("activeProfile"), null);
-}
+async function getActiveUser() {
+    const {
+        data: { user },
+        error
+    } = await supabase.auth.getUser();
 
-function safeJsonParse(rawValue, fallback) {
-    if (rawValue === null || rawValue === undefined) return fallback;
-    try {
-        return JSON.parse(rawValue);
-    } catch {
-        return fallback;
+    if (error) {
+        console.error("Aktif kullanıcı alınamadı:", error);
+        return null;
     }
+
+    return user;
 }
 
-function getInitials(name) {
-    if (!name) return "--";
-    const parts = name.trim().split(" ");
-    return parts.length > 1 
-        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-        : parts[0].slice(0, 2).toUpperCase();
-}
 
-// Arayüz ve Profil Menüsü Güncelleme
-function updateAuthUI() {
-    const activeUser = getActiveProfile();
-    const profiles = getProfiles();
+// ======================================================
+// UPDATE AUTH UI
+// ======================================================
 
-    const avatar = document.getElementById("navUserAvatar");
+async function updateAuthUI() {
+    const activeUser = await getActiveUser();
+
+    const headerInfo = document.getElementById("activeUserHeaderInfo");
     const nameEl = document.getElementById("navUserName");
     const emailEl = document.getElementById("navUserEmail");
-    
     const guestMenu = document.getElementById("guestActionMenu");
-    const loggedInMenu = document.getElementById("loggedInActionMenu");
     const logoutMenu = document.getElementById("logoutActionMenu");
-    const selectList = document.getElementById("profileSelectList");
+    const welcomeUserName = document.getElementById("welcomeUserName");
 
+    if (welcomeUserName) {
+        welcomeUserName.textContent = activeUser
+            ? (activeUser.user_metadata?.name || activeUser.email?.split("@")[0] || "")
+            : "";
+    }
+    
     if (activeUser) {
-        // Oturum açık görünümü
-        const initials = getInitials(activeUser.name);
-        if (avatar) avatar.textContent = initials;
-        if (nameEl) nameEl.textContent = activeUser.name;
-        if (emailEl) emailEl.textContent = activeUser.email;
+        const name =
+            activeUser.user_metadata?.name ||
+            activeUser.email?.split("@")[0] ||
+            "Kullanıcı";
 
+        if (nameEl) nameEl.textContent = name;
+        if (emailEl) emailEl.textContent = activeUser.email || "";
+
+        headerInfo?.classList.remove("d-none");
         guestMenu?.classList.add("d-none");
-        loggedInMenu?.classList.remove("d-none");
         logoutMenu?.classList.remove("d-none");
-
-        // Profil Listesini Oluştur
-        if (selectList) {
-            selectList.innerHTML = "";
-            profiles.forEach((prof) => {
-                const isActive = prof.email === activeUser.email;
-                const item = document.createElement("button");
-                item.type = "button";
-                item.className = `dropdown-item d-flex align-items-center justify-content-between py-2 ${isActive ? "active bg-primary-subtle text-primary fw-bold" : ""}`;
-
-                item.innerHTML = `
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="avatar avatar-xs rounded-circle bg-primary-subtle text-primary fw-bold">
-                            ${getInitials(prof.name)}
-                        </span>
-                        <div class="text-start">
-                            <div class="lh-1 text-truncate" style="max-width: 130px;">${escapeHtml(prof.name)}</div>
-                        </div>
-                    </div>
-                    ${isActive ? '<i class="ti ti-check text-primary"></i>' : ''}
-                `;
-
-                item.addEventListener("click", () => switchProfile(prof.email));
-                selectList.appendChild(item);
-            });
-        }
     } else {
-        // Misafir Kullanıcı Görünümü
-        if (avatar) avatar.innerHTML = `<i class="ti ti-user fs-2"></i>`;
-        if (nameEl) nameEl.textContent = "Misafir Kullanıcı";
-        if (emailEl) emailEl.textContent = "Oturum açılmadı";
-
+        headerInfo?.classList.add("d-none");
         guestMenu?.classList.remove("d-none");
-        loggedInMenu?.classList.add("d-none");
         logoutMenu?.classList.add("d-none");
     }
 }
 
-// Profil Değiştir
-function switchProfile(email) {
-    const profiles = getProfiles();
-    const target = profiles.find((p) => p.email === email);
-    if (target) {
-        localStorage.setItem("activeProfile", JSON.stringify(target));
-        updateAuthUI();
+
+// ======================================================
+// USER MENU
+// ======================================================
+
+function closeUserMenu() {
+    const menu = document.getElementById("userDropdownMenu");
+    const button = document.getElementById("userMenuButton");
+
+    menu?.classList.remove("show");
+    button?.setAttribute("aria-expanded", "false");
+}
+
+function toggleUserMenu(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const menu = document.getElementById("userDropdownMenu");
+    const button = document.getElementById("userMenuButton");
+
+    if (!menu || !button) return;
+
+    const isOpen = menu.classList.contains("show");
+
+    if (isOpen) {
+        closeUserMenu();
+    } else {
+        menu.classList.add("show");
+        button.setAttribute("aria-expanded", "true");
     }
 }
 
-// Kayıt Ol Formu
-document.getElementById("registerForm")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("regName").value;
-    const email = document.getElementById("regEmail").value;
+function openModalById(modalId) {
+    closeUserMenu();
 
-    const newProfile = { name, email };
-    let profiles = getProfiles();
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) return;
 
-    if (!profiles.some((p) => p.email === email)) {
-        profiles.push(newProfile);
-        localStorage.setItem("dashboardProfiles", JSON.stringify(profiles));
-    }
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+}
 
-    localStorage.setItem("activeProfile", JSON.stringify(newProfile));
 
-    const modalEl = document.getElementById("registerModal");
-    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    modal.hide();
+// ======================================================
+// EVENT LISTENERS
+// ======================================================
 
+document
+    .getElementById("userMenuButton")
+    ?.addEventListener("click", toggleUserMenu);
+
+document.addEventListener("click", (event) => {
+    const menu = document.getElementById("userDropdownMenu");
+    const button = document.getElementById("userMenuButton");
+
+    if (!menu || !button) return;
+    if (!menu.classList.contains("show")) return;
+
+    if (menu.contains(event.target) || button.contains(event.target)) return;
+
+    closeUserMenu();
+});
+
+document
+    .getElementById("openLoginBtn")
+    ?.addEventListener("click", () => openModalById("loginModal"));
+
+document
+    .getElementById("openRegisterBtn")
+    ?.addEventListener("click", () => openModalById("registerModal"));
+
+document
+    .getElementById("openSettingsBtn")
+    ?.addEventListener("click", () => openModalById("settingsModal"));
+
+
+// ======================================================
+// REGISTER
+// ======================================================
+
+document
+    .getElementById("registerForm")
+    ?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("regName").value.trim();
+        const email = document.getElementById("regEmail").value.trim();
+        const password = document.getElementById("regPassword").value;
+
+        if (!name || !email || !password) {
+            alert("Lütfen tüm alanları doldurun.");
+            return;
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    name
+                }
+            }
+        });
+
+        if (error) {
+            console.error("Kayıt hatası:", error);
+            alert(error.message);
+            return;
+        }
+
+        console.log("Kayıt başarılı:", data);
+
+        const modalEl = document.getElementById("registerModal");
+        const modal =
+            bootstrap.Modal.getInstance(modalEl) ||
+            new bootstrap.Modal(modalEl);
+
+        modal.hide();
+
+        if (!data.session) {
+            alert("Kayıt başarılı! E-posta adresinizi doğrulayın.");
+        } else {
+            alert("Kayıt başarılı!");
+        }
+
+        await updateAuthUI();
+    });
+
+
+// ======================================================
+// LOGIN
+// ======================================================
+
+document
+    .getElementById("loginForm")
+    ?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+
+        if (!email || !password) {
+            alert("Lütfen e-posta ve şifrenizi girin.");
+            return;
+        }
+
+        const { data, error } =
+            await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+        if (error) {
+            console.error("Giriş hatası:", error);
+            alert(error.message);
+            return;
+        }
+
+        console.log("Giriş başarılı:", data);
+
+        const modalEl = document.getElementById("loginModal");
+        const modal =
+            bootstrap.Modal.getInstance(modalEl) ||
+            new bootstrap.Modal(modalEl);
+
+        modal.hide();
+
+        await updateAuthUI();
+    });
+
+
+// ======================================================
+// LOGOUT
+// ======================================================
+
+document
+    .getElementById("logoutBtn")
+    ?.addEventListener("click", async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            console.error("Çıkış hatası:", error);
+            alert(error.message);
+            return;
+        }
+
+        closeUserMenu();
+        await updateAuthUI();
+    });
+
+
+// ======================================================
+// AUTH STATE
+// ======================================================
+
+supabase.auth.onAuthStateChange(() => {
     updateAuthUI();
 });
 
-// Giriş Yap Formu
-document.getElementById("loginForm")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = document.getElementById("loginEmail").value;
-    const nameFromEmail = email.split("@")[0];
-    const formattedName = nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1);
 
-    const profile = { name: formattedName, email };
-    let profiles = getProfiles();
+// ======================================================
+// INITIAL CHECK
+// ======================================================
 
-    if (!profiles.some((p) => p.email === email)) {
-        profiles.push(profile);
-        localStorage.setItem("dashboardProfiles", JSON.stringify(profiles));
-    }
-
-    localStorage.setItem("activeProfile", JSON.stringify(profile));
-
-    const modalEl = document.getElementById("loginModal");
-    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    modal.hide();
-
-    updateAuthUI();
-});
-
-// Çıkış Yap
-document.getElementById("logoutBtn")?.addEventListener("click", () => {
-    localStorage.removeItem("activeProfile");
-    updateAuthUI();
-});
-
+updateAuthUI();
 // ======================================================
 // THEME & SETTINGS IN MODAL
 // ======================================================
@@ -978,7 +1067,7 @@ async function loadStocks() {
     const stockList = document.getElementById("stockList");
     if (!stockList) return;
 
-    const symbols = ["THYAO", "AAPL", "IBM"];
+    const symbols = ["IBM", "AAPL", "ASELS"];
 
     try {
         const responses = await Promise.allSettled(

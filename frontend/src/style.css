@@ -386,3 +386,34 @@
     opacity: 0.4;
     border: 2px dashed var(--tblr-primary) !important;
 }
+
+.user-menu-btn {
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: 50%;
+    background: var(--tblr-bg-surface);
+    color: var(--tblr-body-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+}
+
+.user-menu-btn:hover {
+    background: var(--tblr-bg-surface-secondary);
+}
+
+#userDropdownMenu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    min-width: 220px;
+    z-index: 1080;
+}
+
+#userDropdownMenu.show {
+    display: block;
+}
