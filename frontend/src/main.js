@@ -3,6 +3,15 @@ import "./style.css";
 import * as bootstrap from "bootstrap";
 import Sortable from "sortablejs";
 import { supabase } from "./lib/supabase";
+import {
+    DEFAULT_DATA_PREFS,
+    getDataPrefs,
+    getSettings,
+    initUserSettings,
+    resetSettings,
+    saveDataPrefs,
+    updateSettings
+} from "./lib/userSettings";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -394,6 +403,12 @@ document.querySelector("#app").innerHTML = `
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="settings-section-label">Hava Durumu</div>
+                <label class="settings-box settings-theme">
+                    <span>Otomatik konum</span>
+                    <input class="form-check-input m-0" type="checkbox" id="settingsAutoLocationToggle" checked>
+                </label>
+
                 <div class="settings-section-label">Görünüm</div>
                 <label class="settings-box settings-theme">
                     <span>Koyu tema</span>
@@ -438,24 +453,27 @@ updateDate();
 // MODULE SYSTEM
 // ======================================================
 const moduleToggles = document.querySelectorAll(".module-toggle");
-const savedModules = JSON.parse(localStorage.getItem("dashboardModules"));
-const activeModules = savedModules || ["weather", "currency", "gold", "crypto", "stocks", "news"];
+
+function applyVisibleModules(modules) {
+    moduleToggles.forEach((input) => {
+        const moduleName = input.dataset.module;
+        const card = document.querySelector(`[data-module-card="${moduleName}"]`);
+        const isActive = modules.includes(moduleName);
+        input.checked = isActive;
+        card?.classList.toggle("d-none", !isActive);
+    });
+}
 
 function saveVisibleModules() {
     const currentModules = [];
     moduleToggles.forEach((input) => {
         if (input.checked) currentModules.push(input.dataset.module);
     });
-    localStorage.setItem("dashboardModules", JSON.stringify(currentModules));
+    updateSettings({ modules: currentModules });
 }
 
 moduleToggles.forEach((input) => {
     const moduleName = input.dataset.module;
-    const card = document.querySelector(`[data-module-card="${moduleName}"]`);
-    const isActive = activeModules.includes(moduleName);
-    input.checked = isActive;
-    card?.classList.toggle("d-none", !isActive);
-
     input.addEventListener("change", () => {
         const target = document.querySelector(`[data-module-card="${moduleName}"]`);
         target?.classList.toggle("d-none", !input.checked);
@@ -491,37 +509,6 @@ const DATA_CATALOG = {
         { id: "MSFT", label: "Microsoft" }
     ]
 };
-
-const DEFAULT_DATA_PREFS = {
-    gold: ["GA", "C", "Y", "T"],
-    crypto: ["BTC", "ETH"],
-    stocks: ["THYAO", "AAPL", "IBM"]
-};
-
-function getDataPrefs() {
-    let saved = null;
-    try {
-        saved = JSON.parse(localStorage.getItem("dashboardDataPrefs"));
-    } catch {
-        saved = null;
-    }
-    if (!saved || typeof saved !== "object") {
-        return {
-            gold: [...DEFAULT_DATA_PREFS.gold],
-            crypto: [...DEFAULT_DATA_PREFS.crypto],
-            stocks: [...DEFAULT_DATA_PREFS.stocks]
-        };
-    }
-    return {
-        gold: Array.isArray(saved.gold) ? saved.gold : [...DEFAULT_DATA_PREFS.gold],
-        crypto: Array.isArray(saved.crypto) ? saved.crypto : [...DEFAULT_DATA_PREFS.crypto],
-        stocks: Array.isArray(saved.stocks) ? saved.stocks : [...DEFAULT_DATA_PREFS.stocks]
-    };
-}
-
-function saveDataPrefs(prefs) {
-    localStorage.setItem("dashboardDataPrefs", JSON.stringify(prefs));
-}
 
 function renderClassificationSettings() {
     const root = document.getElementById("classificationLists");
@@ -819,8 +806,16 @@ document
 // AUTH STATE
 // ======================================================
 
-supabase.auth.onAuthStateChange(() => {
-    updateAuthUI();
+supabase.auth.onAuthStateChange(async (event, session) => {
+    await initUserSettings(session?.user ?? null);
+    applyDashboardSettings();
+    if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        await initializeWeather();
+        loadGold();
+        loadStocks();
+        loadCrypto();
+    }
+    await updateAuthUI();
 });
 
 
@@ -844,27 +839,34 @@ function applyTheme(theme) {
     }
 }
 
-const savedTheme = localStorage.getItem("dashboardTheme") || "light";
-applyTheme(savedTheme);
-
 themeToggleInput?.addEventListener("change", (e) => {
     const newTheme = e.target.checked ? "dark" : "light";
-    localStorage.setItem("dashboardTheme", newTheme);
+    updateSettings({ theme: newTheme });
     applyTheme(newTheme);
 });
 
-// Ayarları Sıfırla
-document.getElementById("resetDashboardBtn")?.addEventListener("click", () => {
-    if (confirm("Dashboard düzeni ve modül ayarları varsayılana sıfırlansın mı?")) {
-        localStorage.removeItem("dashboardOrder");
-        localStorage.removeItem("dashboardModules");
-        localStorage.removeItem("dashboardDataPrefs");
-        window.location.reload();
+const autoLocationToggleInput = document.getElementById("settingsAutoLocationToggle");
+
+function applyAutoLocationSetting(enabled) {
+    if (autoLocationToggleInput) autoLocationToggleInput.checked = enabled;
+}
+
+autoLocationToggleInput?.addEventListener("change", async (e) => {
+    const enabled = e.target.checked;
+    updateSettings({ weather_auto_location: enabled });
+
+    if (enabled) {
+        await initializeWeather();
     }
 });
 
-// Uygulama Başlangıç Yüklemesi
-updateAuthUI();
+// Ayarları Sıfırla
+document.getElementById("resetDashboardBtn")?.addEventListener("click", async () => {
+    if (confirm("Dashboard düzeni ve modül ayarları varsayılana sıfırlansın mı?")) {
+        await resetSettings();
+        window.location.reload();
+    }
+});
 
 // ======================================================
 // WEATHER API
@@ -894,7 +896,7 @@ async function loadWeather(latitude, longitude, cityName = null) {
 
         if (cityName) city.textContent = cityName;
         updated.textContent = `Son güncelleme: ${formatWeatherTime(data.time)}`;
-        updateWeatherIcon(data.weather_code);
+        updateWeatherIcon(data.weather_code, data.time);
 
     } catch (error) {
         console.error("Hava durumu hatası:", error);
@@ -918,7 +920,11 @@ function getWeatherDescription(code) {
     return weatherCodes[code] || "Bilinmiyor";
 }
 
-function updateWeatherIcon(code) {
+function isNightHour(hour) {
+    return hour >= 20 || hour < 6;
+}
+
+function updateWeatherIcon(code, time = null) {
     const icon = document.querySelector("#weatherIcon");
     const weatherCard = document.querySelector('[data-module-card="weather"] .weather-card-shell');
 
@@ -926,17 +932,24 @@ function updateWeatherIcon(code) {
 
     let iconClass = "ti ti-sun";
     let state = "clear";
-    const hour = new Date().getHours();
+    const hour = time ? new Date(time).getHours() : new Date().getHours();
+    const night = isNightHour(hour);
 
     if (code === 0) {
-        state = hour >= 19 || hour <= 5 ? "night" : "clear";
-        iconClass = state === "night" ? "ti ti-moon-stars" : "ti ti-sun";
-    } else if (code >= 1 && code <= 3) {
-        state = hour >= 19 || hour <= 5 ? "night" : "cloudy";
-        iconClass = state === "night" ? "ti ti-cloud-moon" : "ti ti-cloud-sun";
+        state = night ? "night" : "clear";
+        iconClass = night ? "ti ti-moon-stars" : "ti ti-sun";
+    } else if (code === 1) {
+        state = night ? "night" : "mostly-clear";
+        iconClass = night ? "ti ti-cloud-moon" : "ti ti-sun";
+    } else if (code === 2) {
+        state = night ? "night" : "partly-cloudy";
+        iconClass = night ? "ti ti-cloud-moon" : "ti ti-cloud-sun";
+    } else if (code === 3) {
+        state = night ? "night" : "cloudy";
+        iconClass = night ? "ti ti-cloud-moon" : "ti ti-cloud";
     } else if (code >= 45 && code <= 48) {
-        state = hour >= 19 || hour <= 5 ? "night" : "fog";
-        iconClass = state === "night" ? "ti ti-cloud-moon" : "ti ti-cloud-fog";
+        state = night ? "night" : "fog";
+        iconClass = night ? "ti ti-cloud-moon" : "ti ti-cloud-fog";
     } else if (code >= 51 && code <= 67) {
         state = "rain";
         iconClass = "ti ti-cloud-rain";
@@ -952,7 +965,7 @@ function updateWeatherIcon(code) {
     }
 
     weatherCard.dataset.weatherState = state;
-    icon.className = iconClass;
+    icon.className = `${iconClass} fs-1 text-white`;
 }
 
 function formatWeatherTime(time) {
@@ -960,24 +973,67 @@ function formatWeatherTime(time) {
     return new Date(time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function useCurrentLocation() {
-    if (!navigator.geolocation) {
-        alert("Tarayıcınız konum özelliğini desteklemiyor.");
-        return;
+async function resolvePlaceName(latitude, longitude) {
+    try {
+        const response = await fetch(
+            `${API_URL}/api/weather/reverse?latitude=${latitude}&longitude=${longitude}`
+        );
+        if (!response.ok) return "Mevcut Konum";
+        const data = await response.json();
+        return data.name || "Mevcut Konum";
+    } catch {
+        return "Mevcut Konum";
+    }
+}
+
+function requestGeolocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("unsupported"));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => resolve(position.coords),
+            (error) => reject(error),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+        );
+    });
+}
+
+async function loadWeatherFromCoords(latitude, longitude, options = {}) {
+    const { saveLocation = false, locationType = "gps", placeName = null } = options;
+    const cityName = placeName || await resolvePlaceName(latitude, longitude);
+
+    if (saveLocation) {
+        updateSettings({
+            weather_auto_location: locationType === "auto",
+            weather_location: {
+                type: locationType,
+                latitude,
+                longitude,
+                city: cityName
+            }
+        });
     }
 
-    navigator.geolocation.getCurrentPosition(
-        async (position) => {
-            const { latitude, longitude } = position.coords;
-            localStorage.setItem("weatherLocation", JSON.stringify({ type: "gps", latitude, longitude }));
-            await loadWeather(latitude, longitude, "Mevcut Konum");
-        },
-        (error) => {
-            console.error("Konum hatası:", error);
-            alert("Konum alınamadı. İzin verildiğinden emin olun.");
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
-    );
+    await loadWeather(latitude, longitude, cityName);
+    return cityName;
+}
+
+async function useCurrentLocation() {
+    try {
+        const { latitude, longitude } = await requestGeolocation();
+        updateSettings({ weather_auto_location: true });
+        applyAutoLocationSetting(true);
+        await loadWeatherFromCoords(latitude, longitude, {
+            saveLocation: true,
+            locationType: "auto"
+        });
+    } catch (error) {
+        console.error("Konum hatası:", error);
+        alert("Konum alınamadı. İzin verildiğinden emin olun.");
+    }
 }
 
 document.querySelector("#locationButton")?.addEventListener("click", useCurrentLocation);
@@ -1019,22 +1075,40 @@ document.querySelector("#saveCity")?.addEventListener("click", async () => {
     const { latitude, longitude } = option.dataset;
     const cityName = option.value;
 
-    localStorage.setItem("weatherLocation", JSON.stringify({ type: "city", city: cityName, latitude, longitude }));
+    updateSettings({
+        weather_auto_location: false,
+        weather_location: { type: "city", city: cityName, latitude, longitude }
+    });
     await loadWeather(latitude, longitude, cityName);
     cityModal.hide();
 });
 
 async function initializeWeather() {
-    const saved = localStorage.getItem("weatherLocation");
-    if (saved) {
+    const settings = getSettings();
+    const location = settings.weather_location;
+
+    if (settings.weather_auto_location) {
         try {
-            const location = JSON.parse(saved);
-            await loadWeather(location.latitude, location.longitude, location.type === "city" ? location.city : "Mevcut Konum");
+            const { latitude, longitude } = await requestGeolocation();
+            await loadWeatherFromCoords(latitude, longitude, {
+                saveLocation: true,
+                locationType: "auto"
+            });
             return;
         } catch (error) {
-            console.error("Kayıtlı konum okunamadı:", error);
+            console.warn("Otomatik konum alınamadı, kayıtlı konuma dönülüyor:", error);
         }
     }
+
+    if (location?.latitude && location?.longitude) {
+        await loadWeather(
+            Number(location.latitude),
+            Number(location.longitude),
+            location.city || "Mevcut Konum"
+        );
+        return;
+    }
+
     await loadWeather(41.0082, 28.9784, "İstanbul");
 }
 
@@ -1436,11 +1510,11 @@ function initDragAndDrop() {
         ghostClass: "sortable-ghost", // Sürüklenirken kartın arkasında kalan hayalet stil
         dragClass: "sortable-drag",   // Sürüklenen öğenin stili
         onEnd: function () {
-            // Yeni sıralamayı localStorage'a kaydetmek için:
+            // Yeni sıralamayı kaydet:
             const order = Array.from(gridContainer.children).map(
                 (card) => card.dataset.moduleCard
             );
-            localStorage.setItem("dashboardOrder", JSON.stringify(order));
+            updateSettings({ card_order: order });
         }
     });
 
@@ -1449,25 +1523,40 @@ function initDragAndDrop() {
 }
 
 function restoreCardOrder(container) {
-    const savedOrder = JSON.parse(localStorage.getItem("dashboardOrder"));
+    const savedOrder = getSettings().card_order;
     if (!savedOrder) return;
 
     savedOrder.forEach((moduleName) => {
         const card = container.querySelector(`[data-module-card="${moduleName}"]`);
         if (card) {
-            container.appendChild(card); // Kaydedilen sıraya göre kartları diz
+            container.appendChild(card);
         }
     });
 }
 
 
 
-// INITIALIZATIONS
-renderClassificationSettings();
-initDragAndDrop();
-initializeWeather();
-loadCurrencyRates();
-loadStocks();
-loadGold();
-loadNews();
-loadCrypto();
+function applyDashboardSettings() {
+    const settings = getSettings();
+    applyVisibleModules(settings.modules);
+    applyTheme(settings.theme);
+    applyAutoLocationSetting(settings.weather_auto_location !== false);
+    const gridContainer = document.querySelector(".row-cards");
+    if (gridContainer) restoreCardOrder(gridContainer);
+    renderClassificationSettings();
+}
+
+async function bootstrapDashboard() {
+    const user = await getActiveUser();
+    await initUserSettings(user);
+    applyDashboardSettings();
+    initDragAndDrop();
+    await initializeWeather();
+    loadCurrencyRates();
+    loadStocks();
+    loadGold();
+    loadNews();
+    loadCrypto();
+}
+
+bootstrapDashboard();

@@ -13,7 +13,7 @@ Tarayıcı (Vite, port 5173)
   │     ├── CoinMarketCap       (kripto)
   │     ├── Twelve Data         (borsa)
   │     └── GNews               (haber)
-  └── Supabase Auth             (kayıt / giriş)
+  └── Supabase                    (Auth + kullanıcı ayarları)
 ```
 
 Dashboard fiyat ve haber verisini kendi veritabanında tutmaz; her istekte ilgili dış API’den çekilir. Tema, kart sırası, görünür modüller ve sınıflandırmalar tarayıcı `localStorage` içindedir.
@@ -77,6 +77,20 @@ npm run dev
 
 Arayüz varsayılan olarak [http://127.0.0.1:5173](http://127.0.0.1:5173) adresindedir.
 
+### Supabase veritabanı (kullanıcı ayarları)
+
+Supabase Dashboard → **SQL Editor** içinde `supabase/migrations/20240820000000_user_dashboard_settings.sql` dosyasının içeriğini çalıştırın. Bu migration `user_dashboard_settings` tablosunu ve RLS politikalarını oluşturur.
+
+Giriş yapmış kullanıcılar için kaydedilen alanlar:
+
+| Alan | Açıklama |
+|------|----------|
+| `theme` | `light` / `dark` |
+| `modules` | Görünür modül kartları |
+| `card_order` | Sürükle-bırak sırası |
+| `data_prefs` | Altın, kripto, hisse seçimleri |
+| `weather_location` | Şehir veya GPS konumu |
+
 ## API uçları
 
 | Method | Yol | Kaynak |
@@ -99,9 +113,9 @@ CORS, Vite geliştirme portları `5173` ve `5174` için açıktır.
 - Kart sürükle-bırak sıralama
 - Koyu tema
 - E-posta ile kayıt ve giriş (Supabase)
+- Kullanıcı ayarları Supabase PostgreSQL'de kalıcı (modüller, sıra, tema, altın/kripto/hisse seçimi, hava konumu)
 
 ## Notlar
 
 - Kripto yanıtı arayüzün beklediği alanlarla döner: `close`, `percent_change`
 - Haberler için GNews ücretsiz planda e-posta doğrulama / kota limiti olabilir
-- Dashboard tercihleri henüz Supabase tablosuna yazılmaz; oturum değişince tarayıcıdaki ayarlar aynı kalır

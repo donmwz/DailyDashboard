@@ -129,3 +129,55 @@ async def get_weather(
             status_code=502,
             detail="Hava durumu servisine ulaşılamadı."
         )
+
+
+@router.get("/reverse")
+async def reverse_geocode(
+    latitude: float = Query(...),
+    longitude: float = Query(...)
+):
+    """Koordinatlardan yer adını çözer (Nominatim / OpenStreetMap)."""
+
+    url = "https://nominatim.openstreetmap.org/reverse"
+
+    params = {
+        "lat": latitude,
+        "lon": longitude,
+        "format": "json",
+        "addressdetails": 1,
+        "accept-language": "tr",
+        "zoom": 10,
+    }
+
+    headers = {
+        "User-Agent": "DailyDashboard/1.0 (weather-app)"
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.get(url, params=params, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+
+        address = data.get("address") or {}
+        name = (
+            address.get("city")
+            or address.get("town")
+            or address.get("village")
+            or address.get("municipality")
+            or address.get("state")
+            or data.get("display_name", "").split(",")[0]
+            or "Mevcut Konum"
+        )
+
+        return {
+            "name": name,
+            "latitude": latitude,
+            "longitude": longitude,
+        }
+
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=502,
+            detail="Konum adı servisine ulaşılamadı."
+        )
