@@ -4,6 +4,7 @@ const TABLE = "user_dashboard_settings";
 
 export const DEFAULT_MODULES = [
     "weather",
+    "calendar",
     "currency",
     "gold",
     "crypto",
@@ -14,7 +15,7 @@ export const DEFAULT_MODULES = [
 export const DEFAULT_DATA_PREFS = {
     gold: ["GA", "C", "Y", "T"],
     crypto: ["BTC", "ETH"],
-    stocks: ["THYAO", "AAPL", "IBM"]
+    stocks: ["AAPL", "THYAO.IS", "MSFT", "GARAN.IS"]
 };
 
 const LS_KEYS = {
@@ -25,6 +26,23 @@ const LS_KEYS = {
     weatherLocation: "weatherLocation",
     weatherAutoLocation: "weatherAutoLocation"
 };
+
+function ensureCalendarInModules(modules) {
+    const list = Array.isArray(modules) ? [...modules] : [...DEFAULT_MODULES];
+    if (list.includes("calendar")) return list;
+    const weatherIdx = list.indexOf("weather");
+    list.splice(weatherIdx >= 0 ? weatherIdx + 1 : 0, 0, "calendar");
+    return list;
+}
+
+function ensureCalendarInOrder(order) {
+    if (!Array.isArray(order)) return order;
+    if (order.includes("calendar")) return [...order];
+    const next = [...order];
+    const weatherIdx = next.indexOf("weather");
+    next.splice(weatherIdx >= 0 ? weatherIdx + 1 : 0, 0, "calendar");
+    return next;
+}
 
 let cache = null;
 let currentUserId = null;
@@ -59,7 +77,7 @@ function readLocalSnapshot() {
 
     try {
         const savedModules = JSON.parse(localStorage.getItem(LS_KEYS.modules));
-        if (Array.isArray(savedModules)) modules = savedModules;
+        if (Array.isArray(savedModules)) modules = ensureCalendarInModules(savedModules);
     } catch {
         /* ignore */
     }
@@ -75,7 +93,7 @@ function readLocalSnapshot() {
 
     try {
         const savedOrder = JSON.parse(localStorage.getItem(LS_KEYS.order));
-        if (Array.isArray(savedOrder)) cardOrder = savedOrder;
+        if (Array.isArray(savedOrder)) cardOrder = ensureCalendarInOrder(savedOrder);
     } catch {
         /* ignore */
     }
@@ -136,8 +154,8 @@ function rowToSettings(row) {
 
     return {
         theme: row.theme === "dark" ? "dark" : "light",
-        modules: Array.isArray(row.modules) ? row.modules : [...DEFAULT_MODULES],
-        card_order: Array.isArray(row.card_order) ? row.card_order : null,
+        modules: ensureCalendarInModules(Array.isArray(row.modules) ? row.modules : [...DEFAULT_MODULES]),
+        card_order: ensureCalendarInOrder(Array.isArray(row.card_order) ? row.card_order : null),
         data_prefs: cloneDataPrefs(row.data_prefs),
         weather_location: weatherLocation,
         weather_auto_location: weatherAutoLocation

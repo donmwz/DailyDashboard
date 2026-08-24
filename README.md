@@ -11,12 +11,12 @@ Tarayıcı (Vite, port 5173)
   │     ├── Frankfurter         (döviz)
   │     ├── Genelpara           (altın)
   │     ├── CoinMarketCap       (kripto)
-  │     ├── Twelve Data         (borsa)
+  │     ├── Yahoo Finance       (borsa — ABD + BIST, API anahtarı yok)
   │     └── GNews               (haber)
   └── Supabase                    (Auth + kullanıcı ayarları)
 ```
 
-Dashboard fiyat ve haber verisini kendi veritabanında tutmaz; her istekte ilgili dış API’den çekilir. Tema, kart sırası, görünür modüller ve sınıflandırmalar tarayıcı `localStorage` içindedir.
+Dashboard fiyat ve haber verisini kendi veritabanında tutmaz; her istekte ilgili dış API’den çekilir. Tema, kart sırası, görünür modüller ve sınıflandırmalar giriş yapılmış kullanıcıda Supabase `user_dashboard_settings` tablosunda; takvim kayıtları `user_calendar_items` tablosunda; misafirde `localStorage` içindedir.
 
 ## Klasörler
 
@@ -27,7 +27,8 @@ Dashboard fiyat ve haber verisini kendi veritabanında tutmaz; her istekte ilgil
 
 - Python 3.13+
 - Node.js (npm)
-- Hesap / API anahtarı: CoinMarketCap, Twelve Data, GNews, Supabase
+- Hesap / API anahtarı: CoinMarketCap, GNews, Supabase  
+  (Borsa için Yahoo Finance kullanılır; ekstra anahtar gerekmez.)
 
 ## Kurulum
 
@@ -42,7 +43,6 @@ pip install fastapi uvicorn httpx python-dotenv
 `backend/.env` dosyasını oluştur:
 
 ```
-TWELVE_DATA_API_KEY=
 GNEWS_API_KEY=
 COINMARKETCAP_API_KEY=
 ```
@@ -79,7 +79,7 @@ Arayüz varsayılan olarak [http://127.0.0.1:5173](http://127.0.0.1:5173) adresi
 
 ### Supabase veritabanı (kullanıcı ayarları)
 
-Supabase Dashboard → **SQL Editor** içinde `supabase/migrations/20240820000000_user_dashboard_settings.sql` dosyasının içeriğini çalıştırın. Bu migration `user_dashboard_settings` tablosunu ve RLS politikalarını oluşturur.
+Supabase Dashboard → **SQL Editor** içinde `supabase/migrations/user_dashboard.sql` dosyasının içeriğini çalıştırın. Bu dosya `user_dashboard_settings` tablosunu, takvim alanını ve RLS politikalarını oluşturur / günceller.
 
 Giriş yapmış kullanıcılar için kaydedilen alanlar:
 
@@ -88,8 +88,10 @@ Giriş yapmış kullanıcılar için kaydedilen alanlar:
 | `theme` | `light` / `dark` |
 | `modules` | Görünür modül kartları |
 | `card_order` | Sürükle-bırak sırası |
-| `data_prefs` | Altın, kripto, hisse seçimleri |
+| `data_prefs` | Altın, kripto, hisse seçimleri (ABD + BIST) |
 | `weather_location` | Şehir veya GPS konumu |
+
+Takvim kayıtları ayrı tabloda tutulur: `user_calendar_items` (başlık, tür, tarih, saat, bildirim, tamamlandı).
 
 ## API uçları
 
@@ -98,24 +100,30 @@ Giriş yapmış kullanıcılar için kaydedilen alanlar:
 | GET | `/api/health` | — |
 | GET | `/api/weather?latitude=&longitude=` | Open-Meteo |
 | GET | `/api/weather/cities` | Sabit şehir listesi |
-| GET | `/api/currency` | Frankfurter (USD/EUR/GBP → TRY) |
+| GET | `/api/currency` | Frankfurter (USD/EUR/GBP/CHF/JPY/CAD/AUD/CNY/NOK/SEK/DKK/PLN → TRY) |
 | GET | `/api/gold` | Genelpara |
 | GET | `/api/crypto/{symbol}` | CoinMarketCap (ör. `BTC`) |
-| GET | `/api/stock/{symbol}` | Twelve Data (ör. `AAPL`) |
+| GET | `/api/stock?symbols=` | Yahoo Finance (ör. `AAPL,THYAO.IS,XU100.IS`) |
+| GET | `/api/stock/{symbol}` | Yahoo Finance tek sembol (ör. `GARAN.IS`) |
 | GET | `/api/news` | GNews (TR, genel) |
+
+Borsa sembolleri Yahoo formatındadır: ABD hisseleri `AAPL`, BIST hisseleri `THYAO.IS`, endeksler `XU100.IS` / `^GSPC`.
 
 CORS, Vite geliştirme portları `5173` ve `5174` için açıktır.
 
 ## Özellikler
 
 - Modül kartlarını göster / gizle (Ayarlar)
-- Altın türü, kripto ve hisse seçimi (sınıflandırmalar)
+- Takvim: etkinlik / görev / yapılacak ekleme, tamamlama ve zamanı gelince bildirim
+- Altın türü, kripto ve hisse seçimi — ABD + BIST + endeksler (sınıflandırmalar)
 - Kart sürükle-bırak sıralama
 - Koyu tema
 - E-posta ile kayıt ve giriş (Supabase)
-- Kullanıcı ayarları Supabase PostgreSQL'de kalıcı (modüller, sıra, tema, altın/kripto/hisse seçimi, hava konumu)
+- Kullanıcı ayarları Supabase PostgreSQL'de kalıcı (modüller, sıra, tema, altın/kripto/hisse seçimi, hava konumu, takvim)
 
 ## Notlar
 
-- Kripto yanıtı arayüzün beklediği alanlarla döner: `close`, `percent_change`
-- Haberler için GNews ücretsiz planda e-posta doğrulama / kota limiti olabilir
+- Backend’i proje kökünden çalıştır (`uvicorn backend.main:app`).
+- Frontend, API adresi için `VITE_API_URL` yoksa `http://127.0.0.1:8000` kullanır.
+- Borsa verisi Yahoo Finance üzerinden gelir; API anahtarı gerekmez.
+- Haberler için GNews ücretsiz planda e-posta doğrulama / kota limiti olabilir.

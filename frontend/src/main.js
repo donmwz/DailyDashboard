@@ -12,6 +12,15 @@ import {
     saveDataPrefs,
     updateSettings
 } from "./lib/userSettings";
+import {
+    CALENDAR_TYPES,
+    deleteCalendarItem,
+    getCalendarItems,
+    getTypeMeta,
+    initCalendarStore,
+    saveCalendarItems,
+    upsertCalendarItem
+} from "./lib/calendarItems";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -84,7 +93,7 @@ document.querySelector("#app").innerHTML = `
                         </div>
                     </div>
                     <div class="col-auto">
-                        <div class="badge bg-primary-subtle text-primary fs-6 px-3 py-2 rounded-pill shadow-sm" id="currentDate">
+                        <div class="badge bg-primary-subtle text-primary fs-5 px-3 py-2 rounded-pill shadow-sm" id="currentDate">
                             <i class="ti ti-calendar me-1"></i> --
                         </div>
                     </div>
@@ -151,7 +160,7 @@ document.querySelector("#app").innerHTML = `
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center pt-2">
-                                    <span class="text-white-50 extra-small" id="weatherUpdated"></span>
+                                    <span class="text-white-50 extra-small" id="weatherUpdated">Open-Meteo · —</span>
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-glass" id="locationButton" title="Konumumu Kullan">
                                             <i class="ti ti-map-pin"></i>
@@ -166,6 +175,63 @@ document.querySelector("#app").innerHTML = `
                     </div>
                 </div>
 
+                <!-- CALENDAR MODULE -->
+                <div class="col-lg-7 col-md-12 module-card align-self-start" data-module-card="calendar">
+                    <div class="card calendar-card-shell card-hover shadow-sm border-0">
+                        <div class="card-body d-flex flex-column position-relative py-2 px-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="calendar-heading">
+                                    <span class="calendar-kicker">Takvim</span>
+                                    <div class="d-flex align-items-baseline gap-2 flex-wrap">
+                                        <h3 class="card-title calendar-month mb-0" id="calendarMonthLabel">--</h3>
+                                        <span class="calendar-day-focus" id="calendarDayNumber">--</span>
+                                        <span class="calendar-weekday" id="calendarWeekday">--</span>
+                                        <span class="d-none" id="calendarDayHint">Bugün</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button class="btn btn-sm calendar-action-btn" id="calendarNotifyBtn" type="button" title="Bildirim izni">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
+                                            <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="btn btn-sm calendar-action-btn calendar-action-primary" id="calendarAddBtn" type="button" title="Görev / etkinlik ekle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M12 5v14"></path>
+                                            <path d="M5 12h14"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="calendar-board mb-1">
+                                <div class="calendar-weekdays" id="calendarWeekdays"></div>
+                                <div class="calendar-grid" id="calendarGrid"></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="calendar-list-label" id="calendarListTitle">Seçilen gün</span>
+                                <div class="calendar-nav">
+                                    <button class="btn btn-sm calendar-action-btn" id="calendarPrev" type="button" title="Önceki ay">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>
+                                    </button>
+                                    <button class="btn btn-sm calendar-today-btn" id="calendarToday" type="button">Bugün</button>
+                                    <button class="btn btn-sm calendar-action-btn" id="calendarNext" type="button" title="Sonraki ay">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="calendar-item-list" id="calendarItemList"></div>
+                            <div class="module-meta module-meta-calendar mt-2">
+                                <span class="module-meta-source">Yerel / Supabase</span>
+                                <span class="module-meta-updated" data-module-updated="calendar">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- CURRENCY MODULE -->
                 <div class="col-lg-7 col-md-12 module-card" data-module-card="currency">
                     <div class="card card-hover shadow-sm h-100 border-0">
@@ -175,7 +241,7 @@ document.querySelector("#app").innerHTML = `
                             </h3>
                         </div>
                         <div class="table-responsive">
-                            <table class="table card-table table-vcenter text-nowrap">
+                            <table class="table card-table table-vcenter text-nowrap mb-0">
                                 <thead>
                                     <tr>
                                         <th>Parite</th>
@@ -193,6 +259,10 @@ document.querySelector("#app").innerHTML = `
                                 </tbody>
                             </table>
                         </div>
+                        <div class="card-footer module-meta">
+                            <span class="module-meta-source">Frankfurter</span>
+                            <span class="module-meta-updated" data-module-updated="currency">—</span>
+                        </div>
                     </div>
                 </div>
 
@@ -205,7 +275,7 @@ document.querySelector("#app").innerHTML = `
                             </h3>
                         </div>
                         <div class="table-responsive">
-                            <table class="table card-table table-vcenter text-nowrap">
+                            <table class="table card-table table-vcenter text-nowrap mb-0">
                                 <thead>
                                     <tr>
                                         <th>Ürün</th>
@@ -222,6 +292,10 @@ document.querySelector("#app").innerHTML = `
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="card-footer module-meta">
+                            <span class="module-meta-source">Genelpara</span>
+                            <span class="module-meta-updated" data-module-updated="gold">—</span>
                         </div>
                     </div>
                 </div>
@@ -250,9 +324,11 @@ document.querySelector("#app").innerHTML = `
                                 Kripto verileri yükleniyor...
                             </div>
                         </div>
-
+                        <div class="card-footer module-meta">
+                            <span class="module-meta-source">CoinMarketCap</span>
+                            <span class="module-meta-updated" data-module-updated="crypto">—</span>
+                        </div>
                     </div>
-
                 </div>
 <!-- STOCKS MODULE -->
                 <div class="col-lg-5 col-md-12 module-card" data-module-card="stocks">
@@ -267,6 +343,10 @@ document.querySelector("#app").innerHTML = `
                                 <div class="spinner-border spinner-border-sm me-2"></div>
                                 Hisse fiyatları yükleniyor...
                             </div>
+                        </div>
+                        <div class="card-footer module-meta">
+                            <span class="module-meta-source">Yahoo Finance</span>
+                            <span class="module-meta-updated" data-module-updated="stocks">—</span>
                         </div>
                     </div>
                 </div>
@@ -287,9 +367,6 @@ document.querySelector("#app").innerHTML = `
                                 <div class="d-flex flex-wrap gap-1 mt-2" id="newsSourceFilters">
                                     <button class="btn btn-xs btn-primary news-source-btn active" data-source="all">Tümü</button>
                                 </div>
-                                <div class="text-secondary extra-small mt-2" id="newsUpdated">
-                                    Son güncelleme bekleniyor...
-                                </div>
                             </div>
                         </div>
                         <div class="list-group list-group-flush overflow-auto" style="max-height: 480px;" id="newsList">
@@ -297,6 +374,10 @@ document.querySelector("#app").innerHTML = `
                                 <div class="spinner-border spinner-border-sm text-primary me-2"></div>
                                 Haberler yükleniyor...
                             </div>
+                        </div>
+                        <div class="card-footer module-meta">
+                            <span class="module-meta-source">GNews</span>
+                            <span class="module-meta-updated" data-module-updated="news">—</span>
                         </div>
                     </div>
                 </div>
@@ -314,6 +395,8 @@ document.querySelector("#app").innerHTML = `
         </div>
     </footer>
 </div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="appToasts" style="z-index: 1090;"></div>
 
 <!-- CITY MODAL -->
 <div class="modal modal-blur fade" id="cityModal" tabindex="-1">
@@ -396,7 +479,7 @@ document.querySelector("#app").innerHTML = `
 
 <!-- AYARLAR VE ÖZELLEŞTİRMELER MODAL -->
 <div class="modal modal-blur fade" id="settingsModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Ayarlar</h5>
@@ -418,6 +501,7 @@ document.querySelector("#app").innerHTML = `
                 <div class="settings-section-label">Kartlar</div>
                 <div class="settings-box settings-grid" id="moduleSelector">
                     <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="weather"> <span class="form-check-label">Hava</span></label>
+                    <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="calendar"> <span class="form-check-label">Takvim</span></label>
                     <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="currency"> <span class="form-check-label">Döviz</span></label>
                     <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="gold"> <span class="form-check-label">Altın</span></label>
                     <label class="form-check m-0"><input class="form-check-input module-toggle" type="checkbox" data-module="crypto"> <span class="form-check-label">Kripto</span></label>
@@ -435,6 +519,54 @@ document.querySelector("#app").innerHTML = `
         </div>
     </div>
 </div>
+
+<!-- CALENDAR ITEM MODAL -->
+<div class="modal modal-blur fade" id="calendarItemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow">
+            <form id="calendarItemForm">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="calendarItemModalTitle">Yeni kayıt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="calendarItemId">
+                    <div class="mb-3">
+                        <label class="form-label">Başlık</label>
+                        <input type="text" class="form-control" id="calendarItemTitle" required maxlength="120" placeholder="Toplantı, alışveriş...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tür</label>
+                        <select class="form-select" id="calendarItemType">
+                            <option value="event">Etkinlik</option>
+                            <option value="task">Görev</option>
+                            <option value="todo">Yapılacak</option>
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-7">
+                            <label class="form-label">Tarih</label>
+                            <input type="date" class="form-control" id="calendarItemDate" required>
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label">Saat</label>
+                            <input type="time" class="form-control" id="calendarItemTime">
+                        </div>
+                    </div>
+                    <label class="form-check">
+                        <input class="form-check-input" type="checkbox" id="calendarItemNotify">
+                        <span class="form-check-label">Zamanı gelince bildirim gönder</span>
+                    </label>
+                    <div class="extra-small text-secondary mt-2">Bildirimler, dashboard açıkken tarayıcı bildirimi olarak gelir.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link text-danger me-auto d-none" id="calendarItemDeleteBtn">Sil</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 `;
 
 // ======================================================
@@ -442,12 +574,34 @@ document.querySelector("#app").innerHTML = `
 // ======================================================
 function updateDate() {
     const dateElement = document.querySelector("#currentDate");
+
     if (dateElement) {
         const now = new Date();
-        dateElement.innerHTML = `<i class="ti ti-calendar me-1"></i> ${now.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}`;
+
+        const date = now.toLocaleDateString("tr-TR", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+
+        const time = now.toLocaleTimeString("tr-TR", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+
+        dateElement.innerHTML = `
+            <i class="ti ti-calendar me-1"></i>
+            ${date}
+            <span class="mx-1">•</span>
+            <i class="ti ti-clock me-1"></i>
+            ${time}
+        `;
     }
 }
+
 updateDate();
+setInterval(updateDate, 1000);
 
 // ======================================================
 // MODULE SYSTEM
@@ -502,34 +656,104 @@ const DATA_CATALOG = {
         { id: "DOGE", label: "Dogecoin", icon: "D", color: "bg-yellow-lt" }
     ],
     stocks: [
-        { id: "THYAO", label: "Türk Hava Yolları" },
-        { id: "ASELS", label: "Aselsan" },
-        { id: "AAPL", label: "Apple" },
-        { id: "IBM", label: "IBM" },
-        { id: "MSFT", label: "Microsoft" }
+        // ABD
+        { id: "AAPL", label: "AAPL", hint: "Apple", market: "US" },
+        { id: "MSFT", label: "MSFT", hint: "Microsoft", market: "US" },
+        { id: "GOOGL", label: "GOOGL", hint: "Alphabet", market: "US" },
+        { id: "AMZN", label: "AMZN", hint: "Amazon", market: "US" },
+        { id: "NVDA", label: "NVDA", hint: "NVIDIA", market: "US" },
+        { id: "TSLA", label: "TSLA", hint: "Tesla", market: "US" },
+        { id: "META", label: "META", hint: "Meta", market: "US" },
+        { id: "NFLX", label: "NFLX", hint: "Netflix", market: "US" },
+        { id: "JPM", label: "JPM", hint: "JPMorgan", market: "US" },
+        { id: "V", label: "V", hint: "Visa", market: "US" },
+        { id: "AMD", label: "AMD", hint: "AMD", market: "US" },
+        { id: "INTC", label: "INTC", hint: "Intel", market: "US" },
+        // BIST
+        { id: "THYAO.IS", label: "THYAO", hint: "THY", market: "BIST" },
+        { id: "ASELS.IS", label: "ASELS", hint: "Aselsan", market: "BIST" },
+        { id: "GARAN.IS", label: "GARAN", hint: "Garanti", market: "BIST" },
+        { id: "AKBNK.IS", label: "AKBNK", hint: "Akbank", market: "BIST" },
+        { id: "YKBNK.IS", label: "YKBNK", hint: "Yapı Kredi", market: "BIST" },
+        { id: "ISCTR.IS", label: "ISCTR", hint: "İş Bankası", market: "BIST" },
+        { id: "EREGL.IS", label: "EREGL", hint: "Erdemir", market: "BIST" },
+        { id: "BIMAS.IS", label: "BIMAS", hint: "BİM", market: "BIST" },
+        { id: "KCHOL.IS", label: "KCHOL", hint: "Koç", market: "BIST" },
+        { id: "SAHOL.IS", label: "SAHOL", hint: "Sabancı", market: "BIST" },
+        { id: "TUPRS.IS", label: "TUPRS", hint: "Tüpraş", market: "BIST" },
+        { id: "SISE.IS", label: "SISE", hint: "Şişecam", market: "BIST" },
+        { id: "TCELL.IS", label: "TCELL", hint: "Turkcell", market: "BIST" },
+        { id: "TOASO.IS", label: "TOASO", hint: "Tofaş", market: "BIST" },
+        // Endeksler
+        { id: "XU100.IS", label: "XU100", hint: "BIST 100", market: "IDX" },
+        { id: "XU030.IS", label: "XU030", hint: "BIST 30", market: "IDX" },
+        { id: "^GSPC", label: "S&P500", hint: "S&P 500", market: "IDX" },
+        { id: "^DJI", label: "DJI", hint: "Dow Jones", market: "IDX" },
+        { id: "^IXIC", label: "IXIC", hint: "Nasdaq", market: "IDX" }
     ]
 };
+
+function formatModuleUpdatedAt(date = new Date()) {
+    return date.toLocaleString("tr-TR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function setModuleUpdated(moduleKey, date = new Date()) {
+    const el = document.querySelector(`[data-module-updated="${moduleKey}"]`);
+    if (el) el.textContent = formatModuleUpdatedAt(date);
+}
 
 function renderClassificationSettings() {
     const root = document.getElementById("classificationLists");
     if (!root) return;
     const prefs = getDataPrefs();
-    const groups = [
-        { key: "gold", title: "Altın" },
-        { key: "crypto", title: "Kripto" },
-        { key: "stocks", title: "Borsa" }
-    ];
 
-    root.innerHTML = groups.map((group) => {
-        const items = DATA_CATALOG[group.key].map((item) => {
-            const checked = prefs[group.key].includes(item.id) ? "checked" : "";
-            return `<label class="form-check">
-                <input type="checkbox" class="form-check-input data-pref-check" data-group="${group.key}" value="${item.id}" ${checked}>
+    const compactGroup = (key, title) => {
+        const items = DATA_CATALOG[key].map((item) => {
+            const checked = prefs[key].includes(item.id) ? "checked" : "";
+            return `<label class="form-check settings-compact-check">
+                <input type="checkbox" class="form-check-input data-pref-check" data-group="${key}" value="${item.id}" ${checked}>
                 <span class="form-check-label">${item.label}</span>
             </label>`;
         }).join("");
-        return `<div class="settings-data-col"><div class="settings-data-head">${group.title}</div>${items}</div>`;
+        return `<div class="settings-data-col"><div class="settings-data-head">${title}</div><div class="settings-compact-list">${items}</div></div>`;
+    };
+
+    const stockSections = [
+        { market: "US", title: "ABD" },
+        { market: "BIST", title: "BIST" },
+        { market: "IDX", title: "Endeks" }
+    ].map((section) => {
+        const chips = DATA_CATALOG.stocks
+            .filter((item) => item.market === section.market)
+            .map((item) => {
+                const checked = prefs.stocks.includes(item.id) ? "checked" : "";
+                return `<label class="settings-chip" title="${item.hint || item.label}">
+                    <input type="checkbox" class="data-pref-check" data-group="stocks" value="${item.id}" ${checked}>
+                    <span>${item.label}</span>
+                </label>`;
+            }).join("");
+        return `<div class="settings-stock-section">
+            <div class="settings-data-head">${section.title}</div>
+            <div class="settings-chip-grid">${chips}</div>
+        </div>`;
     }).join("");
+
+    root.innerHTML = `
+        <div class="settings-data-top">
+            ${compactGroup("gold", "Altın")}
+            ${compactGroup("crypto", "Kripto")}
+        </div>
+        <div class="settings-data-stocks">
+            <div class="settings-data-head">Borsa</div>
+            ${stockSections}
+        </div>
+    `;
 }
 
 function applyDataPrefChange() {
@@ -811,6 +1035,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     applyDashboardSettings();
     if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
         await initializeWeather();
+        await initCalendar();
         loadGold();
         loadStocks();
         loadCrypto();
@@ -895,7 +1120,7 @@ async function loadWeather(latitude, longitude, cityName = null) {
         condition.textContent = getWeatherDescription(data.weather_code);
 
         if (cityName) city.textContent = cityName;
-        updated.textContent = `Son güncelleme: ${formatWeatherTime(data.time)}`;
+        updated.textContent = `Open-Meteo · ${formatModuleUpdatedAt(data.time ? new Date(data.time) : new Date())}`;
         updateWeatherIcon(data.weather_code, data.time);
 
     } catch (error) {
@@ -905,7 +1130,7 @@ async function loadWeather(latitude, longitude, cityName = null) {
         feelsLike.textContent = "--°";
         wind.textContent = "-- km/h";
         condition.textContent = "Veri alınamadı";
-        updated.textContent = "Ulaşılamadı";
+        updated.textContent = "Open-Meteo · ulaşılamadı";
     }
 }
 
@@ -1113,6 +1338,351 @@ async function initializeWeather() {
 }
 
 // ======================================================
+// CALENDAR
+// ======================================================
+const CALENDAR_TYPE_LABELS = Object.fromEntries(
+    Object.entries(CALENDAR_TYPES).map(([key, meta]) => [key, meta.label])
+);
+
+const WEEKDAY_SHORT = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+const MONTH_NAMES = [
+    "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+];
+
+let selectedCalendarDate = startOfDay(new Date());
+let calendarItemModal = null;
+let calendarNotifyTimer = null;
+
+function startOfDay(date) {
+    const next = new Date(date);
+    next.setHours(0, 0, 0, 0);
+    return next;
+}
+
+function toDateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function parseDateKey(key) {
+    const [year, month, day] = String(key).split("-").map(Number);
+    return new Date(year, (month || 1) - 1, day || 1);
+}
+
+function isSameDay(a, b) {
+    return toDateKey(a) === toDateKey(b);
+}
+
+function getItemDueAt(item) {
+    if (!item?.date) return null;
+    const date = parseDateKey(item.date);
+    if (item.time) {
+        const [hour, minute] = item.time.split(":").map(Number);
+        date.setHours(hour || 0, minute || 0, 0, 0);
+    } else {
+        date.setHours(9, 0, 0, 0);
+    }
+    return date;
+}
+
+function showAppToast(title, body) {
+    const root = document.getElementById("appToasts");
+    if (!root) return;
+    const el = document.createElement("div");
+    el.className = "toast show align-items-center border-0 shadow";
+    el.setAttribute("role", "alert");
+    el.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong class="d-block">${escapeHtml(title)}</strong>
+                <span class="small">${escapeHtml(body)}</span>
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    root.appendChild(el);
+    setTimeout(() => el.remove(), 6000);
+}
+
+function fireCalendarNotification(item) {
+    const typeLabel = CALENDAR_TYPE_LABELS[item.type] || "Kayıt";
+    const when = item.time ? item.time : "Tüm gün";
+    const body = `${when} • ${item.title}`;
+    showAppToast(typeLabel, body);
+
+    if ("Notification" in window && Notification.permission === "granted") {
+        try {
+            new Notification(`${typeLabel}: ${item.title}`, {
+                body: when,
+                tag: item.id
+            });
+        } catch (error) {
+            console.warn("Bildirim gönderilemedi:", error);
+        }
+    }
+}
+
+async function requestCalendarNotifications() {
+    if (!("Notification" in window)) {
+        alert("Tarayıcınız bildirimleri desteklemiyor.");
+        return false;
+    }
+    if (Notification.permission === "granted") return true;
+    const result = await Notification.requestPermission();
+    return result === "granted";
+}
+
+function checkCalendarNotifications() {
+    const items = getCalendarItems();
+    const now = Date.now();
+    let changed = false;
+
+    const next = items.map((item) => {
+        if (!item.notify || item.done) return item;
+        const due = getItemDueAt(item);
+        if (!due) return item;
+        const dueMs = due.getTime();
+        if (now < dueMs) return item;
+        if (now - dueMs > 24 * 60 * 60 * 1000) return item;
+        const stamp = due.toISOString();
+        if (item.notifiedAt === stamp) return item;
+        fireCalendarNotification(item);
+        changed = true;
+        return { ...item, notifiedAt: stamp };
+    });
+
+    if (changed) saveCalendarItems(next);
+}
+
+function renderCalendar() {
+    const monthLabel = document.getElementById("calendarMonthLabel");
+    const dayNumber = document.getElementById("calendarDayNumber");
+    const weekday = document.getElementById("calendarWeekday");
+    const hint = document.getElementById("calendarDayHint");
+    const weekdays = document.getElementById("calendarWeekdays");
+    const grid = document.getElementById("calendarGrid");
+    const list = document.getElementById("calendarItemList");
+    const listTitle = document.getElementById("calendarListTitle");
+    if (!grid || !list) return;
+
+    setModuleUpdated("calendar");
+
+    const today = startOfDay(new Date());
+    const year = selectedCalendarDate.getFullYear();
+    const month = selectedCalendarDate.getMonth();
+    const items = getCalendarItems();
+    const selectedKey = toDateKey(selectedCalendarDate);
+
+    if (monthLabel) monthLabel.textContent = `${MONTH_NAMES[month]} ${year}`;
+    if (dayNumber) dayNumber.textContent = String(selectedCalendarDate.getDate());
+    if (weekday) {
+        weekday.textContent = selectedCalendarDate.toLocaleDateString("tr-TR", { weekday: "long" });
+    }
+    if (hint) hint.textContent = isSameDay(selectedCalendarDate, today) ? "Bugün" : "Seçilen gün";
+    if (listTitle) {
+        listTitle.textContent = selectedCalendarDate.toLocaleDateString("tr-TR", {
+            day: "numeric",
+            month: "long"
+        });
+    }
+    if (weekdays) {
+        weekdays.innerHTML = WEEKDAY_SHORT.map((name) => `<span>${name}</span>`).join("");
+    }
+
+    const first = new Date(year, month, 1);
+    const startOffset = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells = [];
+
+    for (let i = 0; i < startOffset; i += 1) {
+        cells.push(`<button type="button" class="calendar-day is-empty" disabled></button>`);
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+        const date = new Date(year, month, day);
+        const key = toDateKey(date);
+        const weekday = date.getDay();
+        const isWeekend = weekday === 0 || weekday === 6;
+        const dayDots = [...new Set(
+            items.filter((item) => item.date === key).map((item) => item.type)
+        )].slice(0, 3);
+        const classes = [
+            "calendar-day",
+            isSameDay(date, today) ? "is-today" : "",
+            key === selectedKey ? "is-selected" : "",
+            dayDots.length ? "has-items" : "",
+            isWeekend ? "is-weekend" : ""
+        ].filter(Boolean).join(" ");
+        const dotsHtml = dayDots.map((type) => {
+            const color = getTypeMeta(type).color;
+            return `<span class="calendar-day-dot" style="background:${color}"></span>`;
+        }).join("");
+        cells.push(`
+            <button type="button" class="${classes}" data-date="${key}">
+                <span class="calendar-day-num">${day}</span>
+                <span class="calendar-day-dots">${dotsHtml}</span>
+            </button>
+        `);
+    }
+
+    grid.innerHTML = cells.join("");
+
+    const dayItems = items
+        .filter((item) => item.date === selectedKey)
+        .sort((a, b) => String(a.time || "99:99").localeCompare(String(b.time || "99:99")));
+
+    if (!dayItems.length) {
+        list.innerHTML = `<div class="extra-small py-2" style="color: var(--cal-muted)">Bu gün için kayıt yok. + ile ekleyebilirsin.</div>`;
+        return;
+    }
+
+    list.innerHTML = dayItems.map((item) => {
+        const meta = getTypeMeta(item.type);
+        return `
+        <div class="calendar-entry ${item.done ? "is-done" : ""}" data-id="${escapeHtml(item.id)}" data-type="${escapeHtml(item.type)}">
+            <button type="button" class="calendar-check" data-action="toggle" title="Tamamla" aria-label="Tamamla">
+                <span class="calendar-type-dot" style="background:${meta.color}"></span>
+            </button>
+            <button type="button" class="calendar-entry-body" data-action="edit">
+                <div class="calendar-entry-main">
+                    <span class="calendar-entry-title">${escapeHtml(item.title)}</span>
+                    <span class="calendar-entry-meta">
+                        ${item.time ? `<span class="calendar-entry-time">${escapeHtml(item.time)}</span>` : ""}
+                        <span class="calendar-entry-type" style="color:${meta.color}">${meta.label}</span>
+                    </span>
+                </div>
+            </button>
+        </div>`;
+    }).join("");
+}
+
+function openCalendarItemModal(item = null) {
+    const modalEl = document.getElementById("calendarItemModal");
+    if (!modalEl) return;
+    calendarItemModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+    document.getElementById("calendarItemModalTitle").textContent = item ? "Kaydı düzenle" : "Yeni kayıt";
+    document.getElementById("calendarItemId").value = item?.id || "";
+    document.getElementById("calendarItemTitle").value = item?.title || "";
+    document.getElementById("calendarItemType").value = item?.type || "event";
+    document.getElementById("calendarItemDate").value = item?.date || toDateKey(selectedCalendarDate);
+    document.getElementById("calendarItemTime").value = item?.time || "";
+    document.getElementById("calendarItemNotify").checked = Boolean(item?.notify);
+    document.getElementById("calendarItemDeleteBtn")?.classList.toggle("d-none", !item);
+
+    calendarItemModal.show();
+}
+
+async function initCalendar() {
+    const user = await getActiveUser();
+    await initCalendarStore(user);
+    renderCalendar();
+    checkCalendarNotifications();
+    if (calendarNotifyTimer) clearInterval(calendarNotifyTimer);
+    calendarNotifyTimer = setInterval(checkCalendarNotifications, 30000);
+}
+
+document.getElementById("calendarGrid")?.addEventListener("click", (event) => {
+    const btn = event.target.closest("[data-date]");
+    if (!btn) return;
+    selectedCalendarDate = startOfDay(parseDateKey(btn.dataset.date));
+    renderCalendar();
+});
+
+document.getElementById("calendarPrev")?.addEventListener("click", () => {
+    selectedCalendarDate = startOfDay(new Date(
+        selectedCalendarDate.getFullYear(),
+        selectedCalendarDate.getMonth() - 1,
+        1
+    ));
+    renderCalendar();
+});
+
+document.getElementById("calendarNext")?.addEventListener("click", () => {
+    selectedCalendarDate = startOfDay(new Date(
+        selectedCalendarDate.getFullYear(),
+        selectedCalendarDate.getMonth() + 1,
+        1
+    ));
+    renderCalendar();
+});
+
+document.getElementById("calendarToday")?.addEventListener("click", () => {
+    selectedCalendarDate = startOfDay(new Date());
+    renderCalendar();
+});
+
+document.getElementById("calendarAddBtn")?.addEventListener("click", () => {
+    openCalendarItemModal();
+});
+
+document.getElementById("calendarNotifyBtn")?.addEventListener("click", async () => {
+    const granted = await requestCalendarNotifications();
+    alert(granted
+        ? "Bildirimler açık. Zamanı gelen kayıtlar için uyarı alacaksın."
+        : "Bildirim izni verilmedi. İzin vermeden tarayıcı bildirimi gönderilemez.");
+});
+
+document.getElementById("calendarItemList")?.addEventListener("click", async (event) => {
+    const row = event.target.closest(".calendar-entry");
+    if (!row) return;
+    const action = event.target.closest("[data-action]")?.dataset.action;
+    const items = getCalendarItems();
+    const item = items.find((entry) => entry.id === row.dataset.id);
+    if (!item) return;
+
+    if (action === "toggle") {
+        await upsertCalendarItem({ ...item, done: !item.done });
+        renderCalendar();
+        return;
+    }
+
+    if (action === "edit") openCalendarItemModal(item);
+});
+
+document.getElementById("calendarItemForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const id = document.getElementById("calendarItemId").value;
+    const title = document.getElementById("calendarItemTitle").value.trim();
+    const type = document.getElementById("calendarItemType").value;
+    const date = document.getElementById("calendarItemDate").value;
+    const time = document.getElementById("calendarItemTime").value;
+    const notify = document.getElementById("calendarItemNotify").checked;
+
+    if (!title || !date) return;
+
+    if (notify) await requestCalendarNotifications();
+
+    const existing = id ? getCalendarItems().find((item) => item.id === id) : null;
+
+    await upsertCalendarItem({
+        id: id || undefined,
+        title,
+        type,
+        date,
+        time,
+        notify,
+        done: existing?.done || false,
+        notifiedAt: null
+    });
+
+    selectedCalendarDate = startOfDay(parseDateKey(date));
+    renderCalendar();
+    calendarItemModal?.hide();
+});
+
+document.getElementById("calendarItemDeleteBtn")?.addEventListener("click", async () => {
+    const id = document.getElementById("calendarItemId").value;
+    if (!id) return;
+    await deleteCalendarItem(id);
+    renderCalendar();
+    calendarItemModal?.hide();
+});
+
+// ======================================================
 // STOCKS API
 // ======================================================
 async function loadStocks() {
@@ -1120,40 +1690,57 @@ async function loadStocks() {
     if (!stockList) return;
 
     const prefs = getDataPrefs();
-    const symbols = prefs.stocks.length ? prefs.stocks : DEFAULT_DATA_PREFS.stocks;
+    let symbols = prefs.stocks.length ? prefs.stocks : DEFAULT_DATA_PREFS.stocks;
+    const known = new Set(DATA_CATALOG.stocks.map((s) => s.id));
+    symbols = symbols.filter((s) => known.has(String(s).toUpperCase()) || known.has(String(s)));
+    if (!symbols.length) symbols = [...DEFAULT_DATA_PREFS.stocks];
+
     if (!symbols.length) {
         stockList.innerHTML = `<div class="text-secondary text-center py-3">Ayarlar &gt; Sınıflandırmalar bölümünden hisse seç.</div>`;
         return;
     }
 
     try {
-        const responses = await Promise.allSettled(
-            symbols.map(async (symbol) => {
-                const response = await fetch(`${API_URL}/api/stock/${symbol}`);
-                if (!response.ok) throw new Error(`${symbol} verisi alınamadı.`);
-                return response.json();
-            })
+        const response = await fetch(
+            `${API_URL}/api/stock?symbols=${encodeURIComponent(symbols.join(","))}`
         );
+        if (!response.ok) throw new Error(`API ${response.status} hatası`);
 
-        const validStocks = responses.filter((r) => r.status === "fulfilled").map((r) => r.value);
+        const payload = await response.json();
+        const validStocks = Array.isArray(payload?.quotes) ? payload.quotes : [];
         if (!validStocks.length) throw new Error("Hiçbir hisse verisi alınamadı.");
+
+        const order = new Map(symbols.map((s, i) => [String(s).toUpperCase(), i]));
+        validStocks.sort((a, b) => {
+            const ai = order.get(String(a?.symbol || "").toUpperCase()) ?? 999;
+            const bi = order.get(String(b?.symbol || "").toUpperCase()) ?? 999;
+            return ai - bi;
+        });
 
         stockList.innerHTML = "";
 
         validStocks.forEach((data) => {
             const symbol = data?.symbol || "UNKNOWN";
-            const price = Number(data?.close ?? data?.last_price ?? 0);
+            const name = data?.name && data.name !== symbol ? data.name : "";
+            const price = Number(data?.close ?? 0);
             const change = Number(data?.change ?? 0);
             const isPositive = change >= 0;
+            const currency = String(data?.currency || "").toUpperCase();
+            const money =
+                currency === "TRY" ? "₺"
+                    : currency === "USD" ? "$"
+                        : currency ? `${currency} ` : "";
+            const market = data?.market ? `<span class="badge bg-secondary-lt ms-1">${data.market}</span>` : "";
 
             const row = document.createElement("div");
             row.className = "d-flex justify-content-between align-items-center py-2 border-bottom last-border-0";
             row.innerHTML = `
                 <div>
-                    <strong class="d-block fs-4">${symbol}</strong>
+                    <strong class="d-block fs-4">${symbol}${market}</strong>
+                    ${name ? `<span class="text-secondary small">${name}</span>` : ""}
                 </div>
                 <div class="text-end">
-                    <div class="fw-bold fs-4">${price.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺</div>
+                    <div class="fw-bold fs-4">${money}${price.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     <span class="badge ${isPositive ? "bg-green-lt" : "bg-red-lt"} small">
                         <i class="ti ${isPositive ? "ti-trending-up" : "ti-trending-down"} me-1"></i>
                         ${isPositive ? "+" : ""}${change.toFixed(2)}%
@@ -1162,6 +1749,8 @@ async function loadStocks() {
             `;
             stockList.appendChild(row);
         });
+
+        setModuleUpdated("stocks");
 
     } catch (error) {
         console.error("Stok yükleme hatası:", error);
@@ -1206,6 +1795,8 @@ async function loadCurrencyRates() {
             `;
             tableBody.appendChild(row);
         }
+        const stamp = data.date ? new Date(`${data.date}T12:00:00`) : new Date();
+        setModuleUpdated("currency", stamp);
     } catch (error) {
         console.error("Döviz yükleme hatası:", error);
         tableBody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4"><i class="ti ti-alert-circle me-1"></i> Döviz verileri alınamadı.</td></tr>`;
@@ -1275,6 +1866,8 @@ async function loadGold() {
             tableBody.appendChild(row);
         });
 
+        setModuleUpdated("gold");
+
     } catch (error) {
         console.error("Altın yükleme hatası:", error);
         tableBody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4"><i class="ti ti-alert-circle me-1"></i> Altın fiyatları alınamadı.</td></tr>`;
@@ -1301,13 +1894,13 @@ async function loadNews() {
         const data = await response.json();
         allNews = Array.isArray(data.articles) ? data.articles : [];
 
-        document.querySelector("#newsUpdated").textContent = `Son güncelleme: ${new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`;
+        setModuleUpdated("news");
         buildNewsSourceFilters();
         renderNews();
     } catch (error) {
         console.error("Haber hatası:", error);
         allNews = [];
-        document.querySelector("#newsUpdated").textContent = "Haberler yüklenemedi";
+        setModuleUpdated("news");
         buildNewsSourceFilters();
         renderNews();
     }
@@ -1435,6 +2028,8 @@ async function loadCrypto() {
             }
         }
     }));
+
+    setModuleUpdated("crypto");
 }
 
 // ======================================================
@@ -1506,7 +2101,7 @@ function initDragAndDrop() {
 
     Sortable.create(gridContainer, {
         animation: 150, // Yer değiştirme animasyonu hızı (ms)
-        handle: ".card-header, .weather-card-shell", // Sadece başlıktan tutarak sürükleme
+        handle: ".card-header, .weather-card-shell, .calendar-card-shell",
         ghostClass: "sortable-ghost", // Sürüklenirken kartın arkasında kalan hayalet stil
         dragClass: "sortable-drag",   // Sürüklenen öğenin stili
         onEnd: function () {
@@ -1552,6 +2147,7 @@ async function bootstrapDashboard() {
     applyDashboardSettings();
     initDragAndDrop();
     await initializeWeather();
+    await initCalendar();
     loadCurrencyRates();
     loadStocks();
     loadGold();
